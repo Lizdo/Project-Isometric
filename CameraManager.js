@@ -7,9 +7,10 @@ private var cubeManager:CubeManager;
 function Start () {
 	cubeManager = GetComponent(CubeManager);
 	isDirty = true;
+	print("Camera Manager Initiated");
 }
 
-function Update () {
+function LateUpdate () {
 	UpdateCamera();
 	UpdateInput();
 }
@@ -18,7 +19,17 @@ function Update () {
 // Camera Update
 ///////////////////////////
 
+private static var CameraRotationLerpTime:float = 4;
+
 function UpdateCamera() {
+	if (targetRotationY != RotationY){
+		if (Mathf.Abs(RotationY - targetRotationY) <= 0.2){
+			RotationY = targetRotationY;
+		}else{
+			RotationY = Mathf.Lerp(RotationY, targetRotationY, Time.deltaTime * CameraRotationLerpTime);
+		}
+		isDirty = true;
+	}
 	if (isDirty){
 		AlignCamera();
 		isDirty = false;
@@ -31,6 +42,7 @@ private var distance:float = 100;
 
 private var RotationX:float = 30;
 private var RotationY:float = 45;
+private var targetRotationY:float = 45;
 private var RotationZ:float = 0;
 
 // Offset a little bit towards the top of the cubes
@@ -57,25 +69,13 @@ function AlignCamera(){
 	// Tweak the OrthorGraphic Size According to Bounding Size
 
 	var extendsWithBuffer:Vector3 = b.extents * extentBuffer;
-
-	var sizeXZ = Mathf.Abs(extendsWithBuffer.z * Mathf.Cos(Mathf.Deg2Rad * RotationY))
-		+ Mathf.Abs(extendsWithBuffer.x * Mathf.Sin(Mathf.Deg2Rad * RotationY));
-
-	print(sizeXZ);
 	
-
-	var sizeYZ = Mathf.Abs(extendsWithBuffer.z * Mathf.Cos(Mathf.Deg2Rad * RotationX))
-		+ Mathf.Abs(extendsWithBuffer.y * Mathf.Sin(Mathf.Deg2Rad * RotationX));
-
-		print(sizeYZ);
-
-	camera.orthographicSize = Mathf.Max(sizeXZ,sizeYZ);
-	
+	camera.orthographicSize = extendsWithBuffer.magnitude;
 }
 
 function TurnCamera(degree:float){
-	RotationY += degree;
-	isDirty = true;
+	//RotationY += degree;
+	targetRotationY = targetRotationY + degree;
 }
 
 
@@ -113,18 +113,40 @@ function TouchBeganAt(p:Vector2){
 }
 
 function TouchMovedAt(p:Vector2){
-	
+	var c:Cube = FindCubeAtTouchPoint(p);
+	cubeManager.CubeTouched(c);
 }
 
 private static var BorderPercentageToTriggerCameraRotation:float = 0.2;
 
 function TouchEndedAt(p:Vector2){
-	// Border Check 
+
+
+	// Check Camera Rotation
 	if (p.x >= Screen.width * (1-BorderPercentageToTriggerCameraRotation)){
 		TurnCamera(90);
+		return;
 	}
 	else if (p.x <= Screen.width * BorderPercentageToTriggerCameraRotation){
 		TurnCamera(-90);
+		return;
 	}
+	
+	// Release Cube Cursor
+	var c:Cube = FindCubeAtTouchPoint(p);
+	cubeManager.CubeReleased(c);
+}
+
+
+function FindCubeAtTouchPoint(p:Vector2):Cube{
+	//Do Ray Cast
+	var ray : Ray = camera.ScreenPointToRay(Vector3(p.x,p.y,0));
+	var hit : RaycastHit;
+	var v:Vector2;
+	if (Physics.Raycast (ray, hit, 200, Cube.kLayerMask)){
+		var c:Cube = hit.collider.GetComponent(Cube);
+		return c;
+	}
+	return null;
 }
 
