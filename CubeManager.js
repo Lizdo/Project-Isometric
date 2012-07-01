@@ -9,10 +9,12 @@ public var maxZ:float;
 
 private var cubes:Array;
 private var isDirty:boolean;
+private var cameraManager:CameraManager;
 
 private var cursor:Cube;
 
 function Start () {
+	cameraManager = GetComponent(CameraManager);
 	cubes = FindObjectsOfType(Cube);
 	cursor = Instantiate(Resources.Load("Cursor", GameObject)).GetComponent(Cube);
 	cursor.Hide();
@@ -51,18 +53,19 @@ function AddCubeAt(x:int, y:int, z:int, type:CubeType){
 	c.z = z;	
 	cubes.Add(c);
 	isDirty = true;
+	cameraManager.isDirty = true;
 }
 
-function CubeTouched(c:Cube){
+function CubeTouched(c:Cube, n:Vector3){
 	if (!c)
 		return;
 
-	if (FindCubeAt(c.x, c.y+1, c.z)){
+	if (FindCubeAt(c.x+n.x, c.y+n.y, c.z+n.z)){
 		cursor.Hide();
 		return;
 	}
 
-	cursor.SetXYZ(c.x, c.y + 1, c.z);	
+	cursor.SetXYZ(c.x+n.x, c.y+n.y, c.z+n.z);	
 	cursor.Show();
 }
 
@@ -72,7 +75,7 @@ function CubeReleased(c:Cube){
 	if (!c)
 		return;
 
-	AddCubeAt(c.x, c.y + 1, c.z, CubeType.Dirt);
+	AddCubeAt(cursor.x, cursor.y, cursor.z, CubeType.Dirt);
 	
 }
 

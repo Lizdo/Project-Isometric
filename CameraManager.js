@@ -112,15 +112,32 @@ function TouchBeganAt(p:Vector2){
 
 }
 
+public var hit : RaycastHit;
+
 function TouchMovedAt(p:Vector2){
-	var c:Cube = FindCubeAtTouchPoint(p);
-	cubeManager.CubeTouched(c);
+	hit = RaycastHitForPoint(p);
+
+	if (hit.collider == null)
+		return;
+
+	var c:Cube = hit.collider.GetComponent(Cube);
+	var normal:Vector3 = hit.normal;
+
+	cubeManager.CubeTouched(c, normal);
 }
 
 private static var BorderPercentageToTriggerCameraRotation:float = 0.2;
 
 function TouchEndedAt(p:Vector2){
+	// Release Cube Cursor
+	hit = RaycastHitForPoint(p);
 
+	if (hit.collider == null){
+		cubeManager.CubeReleased(null);
+	}else{
+		var c:Cube = hit.collider.GetComponent(Cube);
+		cubeManager.CubeReleased(c);		
+	}
 
 	// Check Camera Rotation
 	if (p.x >= Screen.width * (1-BorderPercentageToTriggerCameraRotation)){
@@ -131,22 +148,19 @@ function TouchEndedAt(p:Vector2){
 		TurnCamera(-90);
 		return;
 	}
-	
-	// Release Cube Cursor
-	var c:Cube = FindCubeAtTouchPoint(p);
-	cubeManager.CubeReleased(c);
 }
 
 
-function FindCubeAtTouchPoint(p:Vector2):Cube{
+function RaycastHitForPoint(p:Vector2){
 	//Do Ray Cast
 	var ray : Ray = camera.ScreenPointToRay(Vector3(p.x,p.y,0));
-	var hit : RaycastHit;
+	var h:RaycastHit;
 	var v:Vector2;
-	if (Physics.Raycast (ray, hit, 200, Cube.kLayerMask)){
-		var c:Cube = hit.collider.GetComponent(Cube);
-		return c;
+	if (Physics.Raycast (ray, h, 200, Cube.kLayerMask)){
+		return h;
 	}
-	return null;
+	print(h.collider);
+	
+	return h;
 }
 
