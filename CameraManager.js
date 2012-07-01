@@ -83,7 +83,22 @@ function TurnCamera(degree:float){
 // Input Update
 ///////////////////////////
 
+private var lastGUIAction:float;
+private var timeToBlockInput:float = 0.1;
+
+function OnGUI(){
+	if (GUIUtility.hotControl != 0){
+		print("GUI Input in Progress");
+		lastGUIAction = Time.time;
+	}
+}
+
 function UpdateInput(){
+	// Block Input if There's an GUI Action
+	if (Time.time - lastGUIAction <= timeToBlockInput){
+		TouchCancelled();
+		return;
+	}
 	if (Application.platform == RuntimePlatform.IPhonePlayer){
 	    var touches = Input.touches;
 	    if (touches.length < 1)
@@ -148,6 +163,10 @@ function TouchEndedAt(p:Vector2){
 		TurnCamera(-90);
 		return;
 	}
+}
+
+function TouchCancelled(){
+	cubeManager.CubeReleased(null);
 }
 
 

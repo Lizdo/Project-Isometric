@@ -1,5 +1,7 @@
 #pragma strict
 
+import Operation;
+
 public var minX:float;
 public var maxX:float;
 public var minY:float;
@@ -33,7 +35,71 @@ function Update () {
 }
 
 
-// TODO: Create Prefab instance
+///////////////////////////
+// Undo/Redo Support
+///////////////////////////
+
+
+private var undoQueue:Array = new Array();
+private var redoQueue:Array = new Array();
+
+function AddCubeOperation(x:int, y:int, z:int, t:CubeType){
+	var o:Operation = new Operation(OperationType.Add,
+		x,y,z,t);
+	undoQueue.push(o);
+	ExecuteOperation(o);
+	redoQueue.clear();
+}
+
+function RemoveCubeOperation(x:int, y:int, z:int){
+	var t:CubeType = FindCubeAt(x,y,z).type;
+	var o:Operation = new Operation(OperationType.Remove,
+		x,y,z,t);
+	undoQueue.push(o);
+	ExecuteOperation(o);
+	redoQueue.clear();	
+}
+
+function ExecuteOperation(o:Operation){
+	o.print();
+
+	if (o.action == OperationType.Add){
+		AddCubeAt(o.x,o.y,o.z,o.type);
+	}else if (o.action == OperationType.Remove){
+		RemoveCubeAt(o.x, o.y, o.z);
+	}
+}
+
+function Undo(){
+	if (undoQueue.length == 0){
+		return;
+	}
+
+	var o:Operation = undoQueue.pop();
+	redoQueue.Add(o);
+
+	ExecuteOperation(o.Revert());
+}
+
+function Redo(){
+	if(redoQueue.length == 0){
+		return;
+	}
+
+	var o:Operation = redoQueue.pop();
+	undoQueue.Add(o);
+
+	ExecuteOperation(o);
+}
+
+
+///////////////////////////
+// Basic Operations
+///////////////////////////
+
+
+
+// Never call this directly!!
 function AddCubeAt(x:int, y:int, z:int, type:CubeType){
 	var g:GameObject;
 	switch(type){
@@ -50,11 +116,31 @@ function AddCubeAt(x:int, y:int, z:int, type:CubeType){
 	var c:Cube = g.GetComponent(Cube);
 	c.x = x;
 	c.y = y;
-	c.z = z;	
+	c.z = z;
 	cubes.Add(c);
 	isDirty = true;
 	cameraManager.isDirty = true;
 }
+
+
+// Never call this directly!!
+function RemoveCubeAt(x:int, y:int, z:int){
+	for (var i = cubes.length - 1; i >= 0; i--) {
+		var c:Cube = cubes[i];
+		if (c.type == CubeType.None)
+			continue;
+		if (c.x == x && c.y == y && c.z == z){
+			cubes.RemoveAt(i);
+			Destroy(c.gameObject);
+			return;
+		}
+	}
+}
+
+
+///////////////////////////
+// Input Callback
+///////////////////////////
 
 function CubeTouched(c:Cube, n:Vector3){
 	if (!c)
@@ -75,9 +161,14 @@ function CubeReleased(c:Cube){
 	if (!c)
 		return;
 
-	AddCubeAt(cursor.x, cursor.y, cursor.z, CubeType.Dirt);
+	AddCubeOperation(cursor.x, cursor.y, cursor.z, CubeType.Dirt);
 	
 }
+
+///////////////////////////
+// Helper functions
+///////////////////////////
+
 
 function FindCubeAt(x:int, y:int, z:int):Cube{
 	for (var c:Cube in cubes) {
