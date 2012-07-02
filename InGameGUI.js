@@ -1,6 +1,6 @@
 #pragma strict
 
-private var resolutionRatio:int = 1;
+public var resolutionRatio:int = 1;
 
 private var padding:float = 8;
 private var buttonSize:float = 64;

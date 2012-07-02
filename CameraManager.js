@@ -3,9 +3,12 @@
 public var isDirty:boolean;
 
 private var cubeManager:CubeManager;
+private var inGameGUI:InGameGUI;
 
 function Start () {
 	cubeManager = GetComponent(CubeManager);
+	inGameGUI = GetComponent(InGameGUI);
+	
 	isDirty = true;
 	print("Camera Manager Initiated");
 }
@@ -130,7 +133,7 @@ function TouchBeganAt(p:Vector2){
 public var hit : RaycastHit;
 
 function TouchMovedAt(p:Vector2){
-	hit = RaycastHitForPoint(p);
+	hit = RaycastHitForPoint(CompensatedTouchPoint(p));
 
 	if (hit.collider == null)
 		return;
@@ -145,7 +148,7 @@ private static var BorderPercentageToTriggerCameraRotation:float = 0.2;
 
 function TouchEndedAt(p:Vector2){
 	// Release Cube Cursor
-	hit = RaycastHitForPoint(p);
+	hit = RaycastHitForPoint(CompensatedTouchPoint(p));
 
 	if (hit.collider == null){
 		cubeManager.CubeReleased(null);
@@ -169,6 +172,14 @@ function TouchCancelled(){
 	cubeManager.CubeReleased(null);
 }
 
+private var touchOffsetForIOS:float = 64;
+
+function CompensatedTouchPoint(p:Vector2):Vector2{
+	if (Application.platform == RuntimePlatform.IPhonePlayer){
+		return Vector2(p.x, p.y - touchOffsetForIOS * inGameGUI.resolutionRatio);
+	}	
+	return p;
+}
 
 function RaycastHitForPoint(p:Vector2){
 	//Do Ray Cast
