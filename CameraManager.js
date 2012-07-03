@@ -51,7 +51,7 @@ private var RotationZ:float = 0;
 // Offset a little bit towards the top of the cubes
 private var YOffsetPercentage:float = 0.1;
 
-private var extentBuffer:float = 1.3;
+private var extentBuffer:float = 1.1;
 
 function AlignCamera(){
 

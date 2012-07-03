@@ -142,6 +142,8 @@ function RemoveCubeAt(x:int, y:int, z:int){
 }
 
 
+public static var kActionDelete:String = "Delete";
+
 ///////////////////////////
 // Input Callback
 ///////////////////////////
@@ -149,6 +151,15 @@ function RemoveCubeAt(x:int, y:int, z:int){
 function CubeTouched(c:Cube, n:Vector3){
 	if (!c)
 		return;
+
+	if (currentAction == kActionDelete){
+		if (FindCubeAt(c.x, c.y, c.z)){
+			cursor.SetXYZ(c.x, c.y, c.z);
+		}else{
+			cursor.Hide();
+		}
+		return;
+	}
 
 	if (FindCubeAt(c.x+n.x, c.y+n.y, c.z+n.z)){
 		cursor.Hide();
@@ -165,8 +176,12 @@ function CubeReleased(c:Cube){
 	if (!c)
 		return;
 
-	if (currentAction != "Delete" && !FindCubeAt(cursor.x, cursor.y, cursor.z)){
-		AddCubeOperation(cursor.x, cursor.y, cursor.z, Cube.TypeWithString(currentAction	));	
+	if (currentAction == kActionDelete && FindCubeAt(cursor.x, cursor.y, cursor.z)){
+		RemoveCubeOperation(cursor.x, cursor.y, cursor.z);
+	}
+
+	if (currentAction != kActionDelete && !FindCubeAt(cursor.x, cursor.y, cursor.z)){
+		AddCubeOperation(cursor.x, cursor.y, cursor.z, Cube.TypeWithString(currentAction));	
 	}
 	
 }
