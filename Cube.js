@@ -47,3 +47,18 @@ function Hide(){
 function Show(){
 	renderer.enabled = true;
 }
+
+static function TypeWithString(s:String):CubeType{
+	if (s == "Dirt"){
+		return CubeType.Dirt;
+	}
+	if (s == "Grass"){
+		return CubeType.Grass;
+	}
+	if (s == "Water"){
+		return CubeType.Water;
+	}
+
+	print("Warning: Wrong Cube Type???");
+	return CubeType.None;
+}

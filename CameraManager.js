@@ -49,9 +49,9 @@ private var targetRotationY:float = 45;
 private var RotationZ:float = 0;
 
 // Offset a little bit towards the top of the cubes
-private var YOffsetPercentage:float = 0.2;
+private var YOffsetPercentage:float = 0.1;
 
-private var extentBuffer:float = 1;
+private var extentBuffer:float = 1.3;
 
 function AlignCamera(){
 
@@ -126,8 +126,18 @@ function UpdateInput(){
 	}   
 }
 
-function TouchBeganAt(p:Vector2){
+// TODO: Optimize the number of Ray Casts
 
+function TouchBeganAt(p:Vector2){
+	hit = RaycastHitForPoint(CompensatedTouchPoint(p));
+
+	if (hit.collider == null)
+		return;
+
+	var c:Cube = hit.collider.GetComponent(Cube);
+	var normal:Vector3 = hit.normal;
+
+	cubeManager.CubeTouched(c, normal);
 }
 
 public var hit : RaycastHit;

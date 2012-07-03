@@ -9,6 +9,8 @@ public var maxY:float;
 public var minZ:float;
 public var maxZ:float;
 
+public var currentAction:String;
+
 private var cubes:Array;
 private var isDirty:boolean;
 private var cameraManager:CameraManager;
@@ -24,6 +26,8 @@ function Start () {
 	AddCubeAt(2,2,3,CubeType.Dirt);	
 	AddCubeAt(2,2,4,CubeType.Water);		
 	isDirty = true;
+	currentAction = "Dirt";
+	
 	print("Cube Manager Initiated");
 }
 
@@ -161,7 +165,9 @@ function CubeReleased(c:Cube){
 	if (!c)
 		return;
 
-	AddCubeOperation(cursor.x, cursor.y, cursor.z, CubeType.Dirt);
+	if (currentAction != "Delete" && !FindCubeAt(cursor.x, cursor.y, cursor.z)){
+		AddCubeOperation(cursor.x, cursor.y, cursor.z, Cube.TypeWithString(currentAction	));	
+	}
 	
 }
 
