@@ -54,6 +54,7 @@ private var RotationZ:float = 0;
 private var YOffsetPercentage:float = 0.1;
 
 private var extentBuffer:float = 1.1;
+private var zoomOut:boolean = false;
 
 function AlignCamera(){
 
@@ -76,6 +77,9 @@ function AlignCamera(){
 	var extendsWithBuffer:Vector3 = b.extents * extentBuffer;
 	
 	camera.orthographicSize = extendsWithBuffer.magnitude;
+
+	// TODO: Use fixed Size when Zoomed In
+	//camera.orthographicSize = 30;
 }
 
 function TurnCamera(degree:float){

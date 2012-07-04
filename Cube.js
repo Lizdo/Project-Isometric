@@ -30,6 +30,14 @@ function SnapToGrid(){
 	z = Mathf.Round(transform.position.z/GRID_SIZE_Z);	
 }
 
+public static function SnapPositionToGrid(v:Vector3):Vector3{
+	var x:int = Mathf.Round(v.x/GRID_SIZE_X);
+	var y:int = Mathf.Round(v.y/GRID_SIZE_Y);	
+	var z:int = Mathf.Round(v.z/GRID_SIZE_Z);
+
+	return Vector3(x,y,z);
+}
+
 function Update () {
 	transform.position = Vector3(x * GRID_SIZE_X, y * GRID_SIZE_Y, z * GRID_SIZE_Z);
 }
@@ -47,6 +55,15 @@ function Hide(){
 function Show(){
 	renderer.enabled = true;
 }
+
+function SurfaceY():float{
+	return transform.position.y + GRID_SIZE_Y/2;
+}
+
+function SurfacePosition():Vector3{
+	return Vector3(transform.position.x, SurfaceY(), transform.position.z);
+}
+
 
 static function TypeWithString(s:String):CubeType{
 	if (s == "Dirt"){

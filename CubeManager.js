@@ -190,7 +190,7 @@ function CubeReleased(c:Cube){
 // Helper functions
 ///////////////////////////
 
-
+// Find cube with id x, y, z
 function FindCubeAt(x:int, y:int, z:int):Cube{
 	for (var c:Cube in cubes) {
 		if (c.type == CubeType.None)
@@ -200,6 +200,28 @@ function FindCubeAt(x:int, y:int, z:int):Cube{
 		}
 	}
 	return null;
+}
+
+
+function ClearCubeAbove(c:Cube):Cube{
+	while (1){
+		var cubeAbove:Cube = CubeAbove(c);
+		if (cubeAbove == null)
+			return c;
+		c = cubeAbove;
+	}
+	print("Should Never Go Here");
+}
+
+function CubeAbove(c:Cube):Cube{
+	return FindCubeAt(c.x, c.y+1, c.z);
+}
+
+
+// Find cube at real world position p
+function FindCubeAtPosition(p:Vector3):Cube{
+	var v:Vector3 = Cube.SnapPositionToGrid(p);
+	return FindCubeAt(Mathf.Floor(v.x), Mathf.Floor(v.y), Mathf.Floor(v.z));
 }
 
 function CalculateBoundingBox(){
