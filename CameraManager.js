@@ -6,6 +6,8 @@ private var cubeManager:CubeManager;
 private var inGameGUI:InGameGUI;
 
 function Start () {
+	Application.targetFrameRate = 60.0;
+
 	cubeManager = GetComponent(CubeManager);
 	inGameGUI = GetComponent(InGameGUI);
 	
@@ -182,11 +184,11 @@ function TouchCancelled(){
 	cubeManager.CubeReleased(null);
 }
 
-private var touchOffsetForIOS:float = 64;
+private var touchOffsetForIOS:float = 32;
 
 function CompensatedTouchPoint(p:Vector2):Vector2{
 	if (Application.platform == RuntimePlatform.IPhonePlayer){
-		return Vector2(p.x, p.y - touchOffsetForIOS * inGameGUI.resolutionRatio);
+		return Vector2(p.x, p.y + touchOffsetForIOS * inGameGUI.resolutionRatio);
 	}	
 	return p;
 }
