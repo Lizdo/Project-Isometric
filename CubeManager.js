@@ -133,6 +133,8 @@ function RemoveCubeAt(x:int, y:int, z:int){
 		if (c.type == CubeType.None)
 			continue;
 		if (c.x == x && c.y == y && c.z == z){
+			if (!c.CanDelete())
+				return;
 			cubes.RemoveAt(i);
 			c.Delete();
 			return;
@@ -152,11 +154,8 @@ function CubeTouched(c:Cube, n:Vector3){
 		return;
 
 	if (currentAction == kActionDelete){
-		if (FindCubeAt(c.x, c.y, c.z)){
-			cursor.SetXYZ(c.x, c.y, c.z);
-		}else{
-			cursor.Hide();
-		}
+		cursor.SetXYZ(c.x, c.y, c.z);
+		cursor.Show();
 		return;
 	}
 

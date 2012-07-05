@@ -66,6 +66,12 @@ function SurfacePosition():Vector3{
 }
 
 
+function CanDelete():boolean{
+	if (type == CubeType.Grass)
+		return false;
+	return true;
+}
+
 function Delete(){
 	isDestroyed = true;
 	renderer.enabled = false;
