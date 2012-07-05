@@ -4,6 +4,8 @@ public var targetCube:Cube;
 public var currentCube:Cube;
 public var nextCube:Cube;
 
+private var initialCube:Cube;
+
 enum MinionState{
 	Idle = 0,
 	Move = 1,
@@ -16,9 +18,6 @@ private var state:MinionState;
 
 function Start () {
 	cubeManager = FindObjectOfType(CubeManager);
-	
-
-
 	SetState(MinionState.Move);
 }
 
@@ -36,7 +35,11 @@ function FindCurrentCube(){
 			transform.position.y - Cube.GRID_SIZE_Y/2, 
 			transform.position.z);
 		currentCube = cubeManager.FindCubeAtPosition(v);		
-	}	
+	}
+	if (!initialCube){
+		initialCube = currentCube;
+	}
+
 }
 
 function UpdateNextCube () {
@@ -49,28 +52,33 @@ function UpdateNextCube () {
 }
 
 function UpdatePosition(){
-
-
 	SnapToCubeSurface();
 	
-
+	// Update Animation
 	if (nextCube.SurfacePosition() == transform.position){
 		SetState(MinionState.Idle);
 		return;
 	}
-
 	SetState(MinionState.Move);
 
 	RotateTowardNextCube();
-	
-
-	
 	MoveTowardNextCube();
 }
 
 function SnapToCubeSurface(){
-	// Snap to the grid surface if over the sky
-	currentCube = cubeManager.ClearCubeAbove(currentCube);
+	if (currentCube.isDestroyed){
+		currentCube = cubeManager.ClearCubeBelow(currentCube);
+	}else{
+		// Snap to the grid surface if over the sky
+		currentCube = cubeManager.ClearCubeAbove(currentCube);		
+	}
+
+	if(!currentCube){
+		// CurrentCube Got Deleted && No Replacement Found
+		currentCube = initialCube;
+		transform.position = currentCube.SurfacePosition();
+		return;
+	}
 
 	transform.position = Vector3(transform.position.x,
 		currentCube.SurfaceY(),

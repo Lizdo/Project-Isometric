@@ -27,7 +27,6 @@ function Start () {
 	AddCubeAt(2,2,4,CubeType.Water);		
 	isDirty = true;
 	currentAction = "Dirt";
-	
 	print("Cube Manager Initiated");
 }
 
@@ -135,7 +134,7 @@ function RemoveCubeAt(x:int, y:int, z:int){
 			continue;
 		if (c.x == x && c.y == y && c.z == z){
 			cubes.RemoveAt(i);
-			Destroy(c.gameObject);
+			c.Delete();
 			return;
 		}
 	}
@@ -211,10 +210,26 @@ function ClearCubeAbove(c:Cube):Cube{
 		c = cubeAbove;
 	}
 	print("Should Never Go Here");
+	return null;
+}
+
+private var MAX_STEP_Y = 100;
+
+function ClearCubeBelow(c:Cube):Cube{
+	for (var i:int = 0; i < MAX_STEP_Y; i++){
+		var cubeBelow:Cube = FindCubeAt(c.x, c.y-1, c.z);
+		if(cubeBelow)
+			return cubeBelow;
+	}
+	return null;
 }
 
 function CubeAbove(c:Cube):Cube{
 	return FindCubeAt(c.x, c.y+1, c.z);
+}
+
+function CubeBelow(c:Cube):Cube{
+	return FindCubeAt(c.x, c.y-1, c.z);
 }
 
 

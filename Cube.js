@@ -5,6 +5,7 @@ public var y:int;
 public var z:int;
 
 public var type:CubeType;
+public var isDestroyed:boolean = false;
 
 public static var kLayerMask:int = 1 << 8;
 
@@ -64,6 +65,13 @@ function SurfacePosition():Vector3{
 	return Vector3(transform.position.x, SurfaceY(), transform.position.z);
 }
 
+
+function Delete(){
+	isDestroyed = true;
+	renderer.enabled = false;
+	yield WaitForSeconds(0.5);
+	Destroy(gameObject);
+}
 
 static function TypeWithString(s:String):CubeType{
 	if (s == "Dirt"){
