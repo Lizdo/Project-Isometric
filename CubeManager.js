@@ -238,6 +238,38 @@ function FindCubeAtPosition(p:Vector3):Cube{
 	return FindCubeAt(Mathf.Floor(v.x), Mathf.Floor(v.y), Mathf.Floor(v.z));
 }
 
+function Available(c:Cube):boolean{
+	if (!c.Passable())
+		return false;
+	if (CubeAbove(c))
+		return false;
+	return true;
+}
+
+function AdjucentCubes(c:Cube):Array{
+	if (!c)
+		return null;
+
+	var a:Array = new Array();
+	var offset = [
+		[-1,0,0],
+		[1,0,0],
+		[0,0,-1],
+		[0,0,1]
+	];
+
+	for (var i:int = 0; i <4 ; i++){
+		var neighbour:Cube = FindCubeAt(c.x + offset[i][0],
+			c.y + offset[i][1],
+			c.z + offset[i][2]);
+		if (neighbour && Available(neighbour)){
+			a.push(neighbour);
+		}
+	}
+
+	return a;
+}
+
 function CalculateBoundingBox(){
 	for (var c:Cube in cubes) {
 		if (c.type == CubeType.None)

@@ -72,11 +72,24 @@ function CanDelete():boolean{
 	return true;
 }
 
+function Passable():boolean{
+	if (type == CubeType.Water)
+		return false;
+	return true;
+}
+
 function Delete(){
 	isDestroyed = true;
 	renderer.enabled = false;
 	yield WaitForSeconds(0.5);
 	Destroy(gameObject);
+}
+
+
+private var distanceYPenalty:float = 5;
+function Distance(c:Cube):float{
+	// Manhattan Distance
+	return Mathf.Abs(c.x - x) + Mathf.Abs(c.y - y) * distanceYPenalty + Mathf.Abs(c.z - z);
 }
 
 static function TypeWithString(s:String):CubeType{

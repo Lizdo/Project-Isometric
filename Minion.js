@@ -29,6 +29,7 @@ function Update () {
 
 
 function FindCurrentCube(){
+	// Initialization Logic
 	if (!currentCube){
 		// Find Current Cube by Position
 		var v:Vector3 = Vector3(transform.position.x, 
@@ -40,13 +41,33 @@ function FindCurrentCube(){
 		initialCube = currentCube;
 	}
 
+	if (currentCube && nextCube){
+		var distanceToNextCube:float = Vector3.Distance(transform.position, nextCube.transform.position);
+		var distanceToCurrentCube:float = Vector3.Distance(transform.position, currentCube.transform.position);	
+		if (distanceToNextCube < distanceToCurrentCube){
+			currentCube = nextCube;
+		}		
+	}
 }
 
 function UpdateNextCube () {
 	// Do Pathfinding Here
+	var a:Array = cubeManager.AdjucentCubes(currentCube);
+	a.Push(currentCube);
+	var distance:float = 1000;
+	for (var c:Cube in a){
+		if (c.Distance(targetCube) < distance){
+			distance = c.Distance(targetCube);
+			nextCube = c;			
+		}
+	}
+
+	if (!cubeManager.Available(nextCube)){
+		nextCube = currentCube;
+	}
 
 	// Go back to the center of current Cube if no next cube found.
-	if (!nextCube){
+	if (!nextCube || nextCube.isDestroyed || nextCube.y != currentCube.y){
 		nextCube = currentCube;
 	}
 }
@@ -86,7 +107,7 @@ function SnapToCubeSurface(){
 }
 
 private var smooth:float = 4.0;
-private var speed:float = 1.0;
+private var speed:float = 4.0;
 
 
 function RotateTowardNextCube(){
