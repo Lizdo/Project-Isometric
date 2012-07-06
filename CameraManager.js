@@ -97,7 +97,6 @@ private var timeToBlockInput:float = 0.1;
 
 function OnGUI(){
 	if (GUIUtility.hotControl != 0){
-		print("GUI Input in Progress");
 		lastGUIAction = Time.time;
 	}
 }

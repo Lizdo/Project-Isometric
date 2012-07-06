@@ -5,6 +5,7 @@ public var currentCube:Cube;
 public var nextCube:Cube;
 
 private var initialCube:Cube;
+public var needRecalculatePathfinding:boolean;
 
 enum MinionState{
 	Idle = 0,
@@ -27,6 +28,7 @@ function Update () {
 	UpdatePosition();
 }
 
+private var reachNextCubeTolerance:float = 0.5;
 
 function FindCurrentCube(){
 	// Initialization Logic
@@ -42,24 +44,26 @@ function FindCurrentCube(){
 	}
 
 	if (currentCube && nextCube){
-		var distanceToNextCube:float = Vector3.Distance(transform.position, nextCube.transform.position);
-		var distanceToCurrentCube:float = Vector3.Distance(transform.position, currentCube.transform.position);	
-		if (distanceToNextCube < distanceToCurrentCube){
+		var distanceToNextCube:float = Vector3.Distance(transform.position, nextCube.SurfacePosition());
+		// var distanceToCurrentCube:float = Vector3.Distance(transform.position, currentCube.transform.position);	
+		if (distanceToNextCube < reachNextCubeTolerance){
 			currentCube = nextCube;
+			needRecalculatePathfinding = true;
 		}		
 	}
 }
 
 function UpdateNextCube () {
 	// Do Pathfinding Here
-	var a:Array = cubeManager.AdjucentCubes(currentCube);
-	a.Push(currentCube);
-	var distance:float = 1000;
-	for (var c:Cube in a){
-		if (c.Distance(targetCube) < distance){
-			distance = c.Distance(targetCube);
-			nextCube = c;			
-		}
+	if (needRecalculatePathfinding){
+		print("Recalculte Pathfinding");
+		//nextCube = cubeManager.PathfindGreed(currentCube, targetCube);
+		nextCube = cubeManager.PathfindAStar(currentCube, targetCube);
+		needRecalculatePathfinding = false;
+	}
+
+	if (!nextCube){	
+		nextCube = currentCube;
 	}
 
 	if (!cubeManager.Available(nextCube)){
@@ -67,7 +71,7 @@ function UpdateNextCube () {
 	}
 
 	// Go back to the center of current Cube if no next cube found.
-	if (!nextCube || nextCube.isDestroyed || nextCube.y != currentCube.y){
+	if (nextCube.isDestroyed || nextCube.y != currentCube.y){
 		nextCube = currentCube;
 	}
 }
@@ -89,15 +93,17 @@ function UpdatePosition(){
 function SnapToCubeSurface(){
 	if (currentCube.isDestroyed){
 		currentCube = cubeManager.ClearCubeBelow(currentCube);
+		needRecalculatePathfinding = true;
 	}else{
 		// Snap to the grid surface if over the sky
-		currentCube = cubeManager.ClearCubeAbove(currentCube);		
+		currentCube = cubeManager.ClearCubeAbove(currentCube);
 	}
 
 	if(!currentCube){
 		// CurrentCube Got Deleted && No Replacement Found
 		currentCube = initialCube;
 		transform.position = currentCube.SurfacePosition();
+		needRecalculatePathfinding = true;
 		return;
 	}
 

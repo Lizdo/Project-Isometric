@@ -7,6 +7,14 @@ public var z:int;
 public var type:CubeType;
 public var isDestroyed:boolean = false;
 
+
+// Used by pathfinding
+public var F:float;
+public var G:float;
+public var H:float;
+public var parentCube:Cube;
+
+
 public static var kLayerMask:int = 1 << 8;
 
 enum CubeType{

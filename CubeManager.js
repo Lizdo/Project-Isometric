@@ -12,14 +12,19 @@ public var maxZ:float;
 public var currentAction:String;
 
 private var cubes:Array;
+private var minions:Array;
 private var isDirty:boolean;
 private var cameraManager:CameraManager;
 
 private var cursor:Cube;
+private var log:GUIText;
 
 function Start () {
 	cameraManager = GetComponent(CameraManager);
 	cubes = FindObjectsOfType(Cube);
+	minions = FindObjectsOfType(Minion);
+
+	log = GameObject.Find("Log").GetComponent(GUIText);
 	cursor = Instantiate(Resources.Load("Cursor", GameObject)).GetComponent(Cube);
 	cursor.Hide();
 	AddCubeAt(2,2,2,CubeType.Dirt);
@@ -70,6 +75,10 @@ function ExecuteOperation(o:Operation){
 		AddCubeAt(o.x,o.y,o.z,o.type);
 	}else if (o.action == OperationType.Remove){
 		RemoveCubeAt(o.x, o.y, o.z);
+	}
+
+	for (var m:Minion in minions){
+		m.needRecalculatePathfinding = true;
 	}
 }
 
@@ -183,6 +192,194 @@ function CubeReleased(c:Cube){
 	}
 	
 }
+
+///////////////////////////
+// Pathfinding
+///////////////////////////
+
+private var OpenList:Array;
+private var ClosedList:Array;
+private var AvailableList:Array;
+
+
+function PathfindGreed(start:Cube, end:Cube):Cube{
+	var a:Array = AdjucentCubes(start);
+	a.Push(start);
+	var distance:float = 1000;
+	var nextCube:Cube;
+	for (var c:Cube in a){
+		if (c.Distance(end) < distance){
+			distance = c.Distance(end);
+			nextCube = c;			
+		}
+	}
+	print("Pathfinding Complete, next Cube:" + nextCube.ToString());
+	return nextCube;
+}
+
+function PathfindAStar(start:Cube, end:Cube):Cube{
+	if (start == end)
+		return end;
+
+	var startTime:float = Time.time;
+	
+	if (start.y != end.y){
+		print("Starting and ending cube are not on the same height!");
+		return null;
+	}
+
+	AvailableList = AvailableCubeWithSameHeight(start);
+	OpenList = new Array();
+	ClosedList = new Array();
+	var pathFound:boolean = false;
+
+	// 1) Add the starting square (or node) to the open list.
+	OpenList.Add(start);
+	start.G = 0;
+
+	// 2) Repeat the following:
+	while(1){
+		//	a) Look for the lowest F cost square on the open list. 
+		//		We refer to this as the current square.
+		var currentCube:Cube = CubeWithLowestFInOpenList();
+
+		//	b) Switch it to the closed list.
+		ClosedList.Add(currentCube);
+		RemoveObjectFromArray(currentCube, OpenList);
+
+		
+		//c) For each of the 4 squares adjacent to this current square …
+		var adjucentCubes:Array = AdjucentCubes(currentCube);
+		for (var c:Cube in adjucentCubes){
+
+			// If it is not walkable or if it is on the closed list, ignore it. 
+			if (!Available(c))
+				continue;
+
+			if (ObjectInArray(c, ClosedList))
+				continue;
+
+			// Otherwise do the following.           
+
+			// If it isn’t on the open list, add it to the open list.
+			// Make the current square the parent of this square. 
+			// Record the F, G, and H costs of the square. 
+			if (!ObjectInArray(c, OpenList)){
+				OpenList.Add(c);
+				c.parentCube = currentCube;
+				c.G = currentCube.G + 1;
+				c.H = end.Distance(c);
+				c.F = c.G + c.H;
+			}else{
+				// If it is on the open list already, check to see if this path to that square is better,
+				// using G cost as the measure. A lower G cost means that this is a better path.
+				// If so, change the parent of the square to the current square,
+				// and recalculate the G and F scores of the square.
+				// If you are keeping your open list sorted by F score,
+				// you may need to resort the list to account for the change.
+				if (currentCube.G + 1 < c.G){
+					c.parentCube = currentCube;
+					c.G = currentCube.G + 1;
+					c.H = end.Distance(c);
+					c.F = c.G + c.H;
+				}
+			}
+		}
+
+		// d) Stop when you:
+
+		//	Add the target square to the closed list, in which case the path has been found (see note below), or
+		//	Fail to find the target square, and the open list is empty. In this case, there is no path.  		
+
+		if (currentCube == end){
+			print("Path Found!");
+			pathFound = true;
+			break;
+		}
+
+		if (OpenList.length == 0){
+			print("Path Not Found!");
+			break;
+		}
+		
+	}
+
+	var endTime:float = Time.time;
+	Log((endTime - startTime).ToString());
+
+	if (pathFound){
+		var pathArray =  new Array();
+		var c:Cube = end;
+		while(1){
+			pathArray.Unshift(c);
+			c = c.parentCube;
+			if (c == start)
+				break;
+		}
+		PrintPath(pathArray);
+		return pathArray[0];
+	}
+
+	return null;
+
+}
+
+function Log(s:String){
+	if (log){
+		log.text = s;
+	}
+}
+
+function AvailableCubeWithSameHeight(startCube:Cube):Array{
+	var a:Array = new Array();
+	for (var c:Cube in cubes){
+		if (c.y == startCube.y && Available(c)){
+			a.push(c);
+		}
+	}
+	return a;
+}
+
+function CubeWithLowestFInOpenList(){
+	var lowestF:float = 10000;
+	var lowestFCube:Cube;
+	for (var c:Cube in OpenList){
+		if (c.F < lowestF){
+			lowestFCube = c;
+			lowestF = c.F;
+		}
+	}
+	return lowestFCube;
+}
+
+function RemoveObjectFromArray(o:Object, a:Array){
+	for (var i:int = 0; i < a.length; i++){
+		if (a[i] == o){
+			a.RemoveAt(i);
+			return;
+		}
+	}
+}
+
+function ObjectInArray(o:Object, a:Array):boolean{
+	for (var i:int = 0; i < a.length; i++){
+		if (a[i] == o){
+			return true;
+		}
+	}
+	return false;
+}
+
+function PrintPath(a:Array){
+	for (var i:int = 0; i < a.length; i++){
+		var c:Cube = a[i];
+		print("Node " + i.ToString()
+		 + ": x: " + c.x.ToString()
+		+ ": y: " + c.y.ToString()
+		+ ": z: " + c.z.ToString());
+	}
+}
+
 
 ///////////////////////////
 // Helper functions
