@@ -113,7 +113,7 @@ function SnapToCubeSurface(){
 }
 
 private var smooth:float = 4.0;
-private var speed:float = 4.0;
+private var speed:float = 10.0;//4.0;
 
 
 function RotateTowardNextCube(){

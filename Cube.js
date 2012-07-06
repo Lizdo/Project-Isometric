@@ -95,9 +95,11 @@ function Delete(){
 
 
 private var distanceYPenalty:float = 5;
+private var distanceXPenalty:float = 1.0001;
+
 function Distance(c:Cube):float{
 	// Manhattan Distance
-	return Mathf.Abs(c.x - x) + Mathf.Abs(c.y - y) * distanceYPenalty + Mathf.Abs(c.z - z);
+	return Mathf.Abs(c.x - x) * distanceXPenalty + Mathf.Abs(c.y - y) * distanceYPenalty + Mathf.Abs(c.z - z);
 }
 
 static function TypeWithString(s:String):CubeType{

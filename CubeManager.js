@@ -307,9 +307,12 @@ function PathfindAStar(start:Cube, end:Cube):Cube{
 	var endTime:float = Time.time;
 	Log((endTime - startTime).ToString());
 
+	var pathArray =  new Array();
+	var c:Cube;
+
+	// Go back to find the full path
 	if (pathFound){
-		var pathArray =  new Array();
-		var c:Cube = end;
+		c = end;
 		while(1){
 			pathArray.Unshift(c);
 			c = c.parentCube;
@@ -319,6 +322,28 @@ function PathfindAStar(start:Cube, end:Cube):Cube{
 		PrintPath(pathArray);
 		return pathArray[0];
 	}
+
+	// Pathfinding Failed, return cube closest to target
+	c = ClosestToTargetCubeInClosedList(end);
+
+	// Rather not move if not helping with the distance
+	if (end.Distance(c) >= end.Distance(start))
+		return null;
+
+	if (!c || !c.parentCube)
+		return null;
+
+	// Go back to find the full path
+	while(1){
+		pathArray.Unshift(c);
+		c = c.parentCube;
+		if (c == start)
+			break;
+	}
+
+	if (pathArray.length != 0)
+		return pathArray[0];
+
 
 	return null;
 
@@ -350,6 +375,18 @@ function CubeWithLowestFInOpenList(){
 		}
 	}
 	return lowestFCube;
+}
+
+function ClosestToTargetCubeInClosedList(end:Cube):Cube{
+	var closestCube:Cube;
+	var distance:float = 1000;
+	for (var c:Cube in ClosedList){
+		if (c.Distance(end) < distance){
+			closestCube = c;
+			distance = c.Distance(end);
+		}
+	}
+	return closestCube;
 }
 
 function RemoveObjectFromArray(o:Object, a:Array){
