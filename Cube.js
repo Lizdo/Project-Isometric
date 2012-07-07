@@ -55,6 +55,7 @@ function SetXYZ(newx:int, newy:int, newz:int){
 	x = newx;
 	y = newy;
 	z = newz;
+	transform.position = Vector3(x * GRID_SIZE_X, y * GRID_SIZE_Y, z * GRID_SIZE_Z);
 }
 
 function Hide(){

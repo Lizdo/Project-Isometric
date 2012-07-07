@@ -5,13 +5,18 @@ public var isDirty:boolean;
 private var cubeManager:CubeManager;
 private var inGameGUI:InGameGUI;
 
+function Awake(){
+	cubeManager = GetComponent(CubeManager);
+	inGameGUI = GetComponent(InGameGUI);	
+}
+
 function Start () {
 	Application.targetFrameRate = 60.0;
 
-	cubeManager = GetComponent(CubeManager);
-	inGameGUI = GetComponent(InGameGUI);
+
 	
-	isDirty = true;
+	InitCamera();
+	
 	print("Camera Manager Initiated");
 }
 
@@ -24,23 +29,109 @@ function LateUpdate () {
 // Camera Update
 ///////////////////////////
 
-private static var CameraRotationLerpTime:float = 4;
+
+// Zoom In Camera: 
+//  Fixed view port size, drag to pan the view port
+
+// Automated Camera:
+// 	Automatically zoom to show the whole level
+
+private var UseZoomInCamera:boolean = true;
+
+
+function InitCamera(){
+	isDirty = true;
+	targetPosition = transform.position;
+
+
+	if (UseZoomInCamera){
+		InitZoomInCamera();
+	}else{
+		InitZoomOutCamera();
+	}
+
+}
 
 function UpdateCamera() {
+	if (UseZoomInCamera){		
+		UpdateZoomInCamera();
+	}else{
+		UpdateZoomOutCamera();
+	}
+};
+
+
+
+///////////////////////////
+// Zoom In Camera
+///////////////////////////
+
+private var numberOfCubesInView:int = 5;
+
+function InitZoomInCamera(){
+	SetLookAt(cubeManager.AvailableMinion().transform.position);
+	var c:Cube = cubeManager.RandomCube();
+	var sizeOfCube:float = c.GetComponent(Renderer).bounds.extents.magnitude;
+	camera.orthographicSize = numberOfCubesInView * sizeOfCube;
+}
+
+function UpdateZoomInCamera(){
+	UpdateRotation();
+	UpdatePosition();
+	if (isDirty){
+		AlignCameraWithTarget();
+		isDirty = false;
+	}
+}
+
+function AlignCameraWithTarget(){
+	SetLookAt(lookAtTarget);
+}
+
+///////////////////////////
+// Zoom Out Camera
+///////////////////////////
+
+private static var CameraLerpSpeed:float = 8.0;
+private var lookAtTarget:Vector3;
+
+function InitZoomOutCamera(){
+
+}
+
+function UpdateZoomOutCamera(){
+	UpdateRotation();
+	UpdatePosition();
+	if (isDirty){
+		AlignCameraWithWorld();
+		isDirty = false;
+	}	
+}
+
+private var rotationTolerance:float = 0.2;
+
+function UpdateRotation(){
 	if (targetRotationY != RotationY){
-		if (Mathf.Abs(RotationY - targetRotationY) <= 0.2){
+		if (Mathf.Abs(RotationY - targetRotationY) <= rotationTolerance){
 			RotationY = targetRotationY;
 		}else{
-			RotationY = Mathf.Lerp(RotationY, targetRotationY, Time.deltaTime * CameraRotationLerpTime);
+			RotationY = Mathf.Lerp(RotationY, targetRotationY, Time.deltaTime * CameraLerpSpeed);
 		}
 		isDirty = true;
 	}
-	if (isDirty){
-		AlignCamera();
-		isDirty = false;
-	}	
-};
+	transform.rotation =  Quaternion.Euler(RotationX, RotationY, RotationZ);
+}
 
+private var positionTolerance:float = 0.2;
+
+
+function UpdatePosition(){
+	if (Mathf.Abs(Vector3.Distance(targetPosition, transform.position)) < positionTolerance){
+		transform.position = targetPosition;
+	}else{
+		transform.position = Vector3.Lerp(transform.position, targetPosition, Time.deltaTime * CameraLerpSpeed);
+	}
+}
 
 //Distance doesn't matter in Ortho Cam, just need to make sure near clip/far clip not triggered
 private var distance:float = 100;
@@ -50,37 +141,53 @@ private var RotationY:float = 45;
 private var targetRotationY:float = 45;
 private var RotationZ:float = 0;
 
+private var targetPosition:Vector3; 
+
 // Offset a little bit towards the top of the cubes
 private var YOffsetPercentage:float = 0.1;
 
 private var extentBuffer:float = 1.1;
 private var zoomOut:boolean = false;
 
-function AlignCamera(){
-
-	transform.rotation =  Quaternion.Euler(RotationX, RotationY, RotationZ);
+function AlignCameraWithWorld(){
 
 	// Calculate World Center
 	var b:Bounds = cubeManager.BoundingBox();
 	print (b);
 
-	// Look At Bounding Center
-	var y:float = b.center.y + distance * Mathf.Sin(Mathf.Deg2Rad * RotationX)
-		+ b.size.y * YOffsetPercentage;
+	var center:Vector3 = Vector3(
+			b.center.x,
+			b.center.y + b.size.y * YOffsetPercentage,
+			b.center.z
+		);
+	SetLookAt(center);
 
-	var x:float = b.center.x - distance * Mathf.Sin(Mathf.Deg2Rad * RotationY);
-	var z:float = b.center.z - distance * Mathf.Cos(Mathf.Deg2Rad * RotationY);	
-
-	transform.position = Vector3(x,y,z);
 	// Tweak the OrthorGraphic Size According to Bounding Size
-
 	var extendsWithBuffer:Vector3 = b.extents * extentBuffer;
-	
 	camera.orthographicSize = extendsWithBuffer.magnitude;
-
-	// TODO: Use fixed Size when Zoomed In
-	//camera.orthographicSize = 30;
 }
+
+///////////////////////////
+// Camera Help Function
+///////////////////////////
+
+function LookAt(target:Vector3){
+	var x:float = target.x - distance * Mathf.Sin(Mathf.Deg2Rad * RotationY);
+	var y:float = target.y + distance * Mathf.Sin(Mathf.Deg2Rad * RotationX);	
+	var z:float = target.z - distance * Mathf.Cos(Mathf.Deg2Rad * RotationY);	
+	targetPosition = Vector3(x,y,z);
+	lookAtTarget = target;
+}
+
+function SetLookAt(target:Vector3){
+	LookAt(target);
+	transform.position = targetPosition;	
+}
+
+
+///////////////////////////
+// Call back from Input
+///////////////////////////
 
 function TurnCamera(degree:float){
 	//RotationY += degree;
@@ -88,12 +195,18 @@ function TurnCamera(degree:float){
 }
 
 
+function PanCamera(offset:Vector3){
+	print("Panning Camera" + offset.ToString());
+	SetLookAt(lookAtTarget+offset);
+}
+
 ///////////////////////////
 // Input Update
 ///////////////////////////
 
 private var lastGUIAction:float;
 private var timeToBlockInput:float = 0.1;
+private var kCameraPanningHelperLayerMask:int = 1 << 9;
 
 function OnGUI(){
 	if (GUIUtility.hotControl != 0){
@@ -133,7 +246,20 @@ function UpdateInput(){
 
 // TODO: Optimize the number of Ray Casts
 
+private var touchStartPoint:Vector2;
+private var startPointIn3D:Vector3;
+
+private var cameraMovementTolerance:float = 20.0;
+private var cameraPanning:boolean = false;
+
 function TouchBeganAt(p:Vector2){
+	touchStartPoint = p;
+	cameraPanning = false;
+
+	if (UseZoomInCamera){
+		startPointIn3D = RaycastHitForCameraPanning(p);
+	}
+
 	hit = RaycastHitForPoint(CompensatedTouchPoint(p));
 
 	if (hit.collider == null)
@@ -148,6 +274,18 @@ function TouchBeganAt(p:Vector2){
 public var hit : RaycastHit;
 
 function TouchMovedAt(p:Vector2){
+	if (!cameraPanning && UseZoomInCamera && Vector2.Distance(p, touchStartPoint) > cameraMovementTolerance){
+		// Touch moved too much, trigger camera panning
+		cameraPanning = true;
+	}
+
+	if (cameraPanning){
+		var endPointIn3D = RaycastHitForCameraPanning(p);
+		PanCamera(startPointIn3D - endPointIn3D);
+		cubeManager.CubeReleased(null);
+		return;
+	}
+
 	hit = RaycastHitForPoint(CompensatedTouchPoint(p));
 
 	if (hit.collider == null)
@@ -162,6 +300,10 @@ function TouchMovedAt(p:Vector2){
 private static var BorderPercentageToTriggerCameraRotation:float = 0.2;
 
 function TouchEndedAt(p:Vector2){
+	// Do not even trigger the camera rotation
+	if (cameraPanning)
+		return;
+
 	// Release Cube Cursor
 	hit = RaycastHitForPoint(CompensatedTouchPoint(p));
 
@@ -169,7 +311,8 @@ function TouchEndedAt(p:Vector2){
 		cubeManager.CubeReleased(null);
 	}else{
 		var c:Cube = hit.collider.GetComponent(Cube);
-		cubeManager.CubeReleased(c);		
+		cubeManager.CubeReleased(c);
+		return;
 	}
 
 	// Check Camera Rotation
@@ -185,6 +328,8 @@ function TouchEndedAt(p:Vector2){
 
 function TouchCancelled(){
 	cubeManager.CubeReleased(null);
+
+
 }
 
 private var touchOffsetForIOS:float = 32;
@@ -194,6 +339,17 @@ function CompensatedTouchPoint(p:Vector2):Vector2{
 		return Vector2(p.x, p.y + touchOffsetForIOS * inGameGUI.resolutionRatio);
 	}	
 	return p;
+}
+
+function RaycastHitForCameraPanning(p:Vector2):Vector3{
+	//Do Ray Cast
+	var ray : Ray = camera.ScreenPointToRay(Vector3(p.x,p.y,0));
+	var h:RaycastHit;
+	var v:Vector2;
+	if (Physics.Raycast (ray, h, 200, kCameraPanningHelperLayerMask)){
+		return h.point;
+	}
+	return Vector3.zero;
 }
 
 function RaycastHitForPoint(p:Vector2){

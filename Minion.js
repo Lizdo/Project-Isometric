@@ -15,11 +15,15 @@ enum MinionState{
 };
 
 private var cubeManager:CubeManager;
-private var state:MinionState;
+public var state:MinionState;
+
+function Awake (){
+	cubeManager = FindObjectOfType(CubeManager);
+}
 
 function Start () {
-	cubeManager = FindObjectOfType(CubeManager);
 	SetState(MinionState.Move);
+	InitializeCurrentCube();
 }
 
 function Update () {
@@ -28,10 +32,7 @@ function Update () {
 	UpdatePosition();
 }
 
-private var reachNextCubeTolerance:float = 0.5;
-
-function FindCurrentCube(){
-	// Initialization Logic
+function InitializeCurrentCube(){
 	if (!currentCube){
 		// Find Current Cube by Position
 		var v:Vector3 = Vector3(transform.position.x, 
@@ -41,8 +42,12 @@ function FindCurrentCube(){
 	}
 	if (!initialCube){
 		initialCube = currentCube;
-	}
+	}	
+}
 
+private var reachNextCubeTolerance:float = 0.5;
+
+function FindCurrentCube(){
 	if (currentCube && nextCube){
 		var distanceToNextCube:float = Vector3.Distance(transform.position, nextCube.SurfacePosition());
 		// var distanceToCurrentCube:float = Vector3.Distance(transform.position, currentCube.transform.position);	
@@ -50,6 +55,10 @@ function FindCurrentCube(){
 			currentCube = nextCube;
 			needRecalculatePathfinding = true;
 		}		
+	}
+
+	if (currentCube == targetCube){
+		SetState(MinionState.Victory);
 	}
 }
 

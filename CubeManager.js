@@ -19,13 +19,16 @@ private var cameraManager:CameraManager;
 private var cursor:Cube;
 private var log:GUIText;
 
-function Start () {
+function Awake(){
 	cameraManager = GetComponent(CameraManager);
 	cubes = FindObjectsOfType(Cube);
 	minions = FindObjectsOfType(Minion);
 
 	log = GameObject.Find("Log").GetComponent(GUIText);
-	cursor = Instantiate(Resources.Load("Cursor", GameObject)).GetComponent(Cube);
+	cursor = Instantiate(Resources.Load("Cursor", GameObject)).GetComponent(Cube);	
+}
+
+function Start () {
 	cursor.Hide();
 	AddCubeAt(2,2,2,CubeType.Dirt);
 	AddCubeAt(2,2,3,CubeType.Dirt);	
@@ -421,6 +424,18 @@ function PrintPath(a:Array){
 ///////////////////////////
 // Helper functions
 ///////////////////////////
+
+function AvailableMinion():Minion{
+	for (var m:Minion in minions){
+		if (m.state != MinionState.Victory)
+			return m;
+	}
+	return null;
+}
+
+function RandomCube():Cube{
+	return cubes[0];
+}
 
 // Find cube with id x, y, z
 function FindCubeAt(x:int, y:int, z:int):Cube{
