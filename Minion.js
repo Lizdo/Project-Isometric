@@ -1,5 +1,7 @@
 #pragma strict
 
+import Helper;
+
 public var targetCube:Cube;
 public var currentCube:Cube;
 public var nextCube:Cube;
@@ -29,8 +31,8 @@ function Start () {
 	SetState(MinionState.Move);
 	InitializeCurrentCube();
 
-	targetMarker.SetColor(color);
 	targetMarker.SetMinion(this);
+	SetColor(ColorWithHex(0x2f4939));
 }
 
 function Update () {
@@ -161,6 +163,25 @@ function MoveTowardNextCube(){
 private var AnimationName = ["Idle", "Move", "Attack", "Victory"];
 private var blendTime = 0.3;
 
+
+protected function Renderer():Renderer{
+    if (renderer)
+        return renderer;
+    
+    var mesh:Transform = transform.Find("Mesh");
+    if (mesh.renderer){
+        return mesh.renderer;
+    }
+
+    var child:Transform = transform.Find("Arm/Bone");
+    if (child.renderer){
+        return child.renderer;    
+    }
+
+    print("Failed to get renderer. Need to check model hierarchy.");
+    return null;
+}
+
 function SetState(s:MinionState){
 	if (state == s)
 		return;
@@ -177,6 +198,6 @@ function SetState(s:MinionState){
 
 function SetColor(c:Color){
 	color = c;
-	renderer.material.color = c;
+	Renderer().material.color = c;
 	targetMarker.SetColor(c);
 }

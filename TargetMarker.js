@@ -5,8 +5,8 @@ private var color:Color;
 
 private var width:float = 0.1;
 private var minWidth:float = 0.1;
-private var maxWidth:float = 0.5;
-private var widthStep:float = 0.01;
+private var maxWidth:float = 1.5;
+private var widthStep:float = 0.05;
 
 private var height:float = 10;
 private var minion:Minion;
@@ -32,12 +32,12 @@ function Update () {
 
 	if (width < minWidth){
 		width = minWidth;
-		widthStep *= -1;
+		widthStep = Mathf.Abs(widthStep);
 	}
 
-	if (width > minWidth){
+	if (width > maxWidth){
 		width = maxWidth;;
-		widthStep *= -1;
+		widthStep = -Mathf.Abs(widthStep);
 	}
 
 	width += widthStep;

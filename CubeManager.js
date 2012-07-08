@@ -228,7 +228,9 @@ function PathfindAStar(start:Cube, end:Cube):Cube{
 	
 	if (start.y != end.y){
 		print("Starting and ending cube are not on the same height!");
-		return null;
+
+		// Allow moving to the closest y
+		//return null;
 	}
 
 	AvailableList = AvailableCubeWithSameHeight(start);
@@ -317,8 +319,15 @@ function PathfindAStar(start:Cube, end:Cube):Cube{
 	if (pathFound){
 		c = end;
 		while(1){
+			// Add c to the beginning of the return list
 			pathArray.Unshift(c);
+
+			// If trying to climb? Clear the array
+			if (c.y != c.parentCube.y){
+				pathArray.clear();
+			}
 			c = c.parentCube;
+
 			if (c == start)
 				break;
 		}
