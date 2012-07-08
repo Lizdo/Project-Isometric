@@ -87,7 +87,7 @@ function UpdateNextCube () {
 
 	// Do Pathfinding Here
 	if (needRecalculatePathfinding){
-		print("Recalculte Pathfinding");
+		//print("Recalculte Pathfinding");
 		//nextCube = cubeManager.PathfindGreed(currentCube, targetCube);
 		nextCube = cubeManager.PathfindAStar(currentCube, targetCube);
 		needRecalculatePathfinding = false;

@@ -102,7 +102,7 @@ function LevelComplete(){
 	LoadNextlevel();	
 }
 
-private var MaxLevelID:int = 1;
+private var MaxLevelID:int = 3;
 
 function LoadNextlevel(){
 	var index:int = Application.loadedLevel + 1;
@@ -281,7 +281,7 @@ function PathfindGreed(start:Cube, end:Cube):Cube{
 			nextCube = c;			
 		}
 	}
-	print("Pathfinding Complete, next Cube:" + nextCube.ToString());
+	// print("Pathfinding Complete, next Cube:" + nextCube.ToString());
 	return nextCube;
 }
 
@@ -292,7 +292,7 @@ function PathfindAStar(start:Cube, end:Cube):Cube{
 	var startTime:float = Time.time;
 	
 	if (start.y != end.y){
-		print("Starting and ending cube are not on the same height!");
+		//print("Starting and ending cube are not on the same height!");
 
 		// Allow moving to the closest y
 		//return null;
@@ -362,13 +362,13 @@ function PathfindAStar(start:Cube, end:Cube):Cube{
 		//	Fail to find the target square, and the open list is empty. In this case, there is no path.  		
 
 		if (currentCube == end){
-			print("Path Found!");
+			//print("Path Found!");
 			pathFound = true;
 			break;
 		}
 
 		if (OpenList.length == 0){
-			print("Path Not Found!");
+			//print("Path Not Found!");
 			break;
 		}
 		
@@ -396,7 +396,7 @@ function PathfindAStar(start:Cube, end:Cube):Cube{
 			if (c == start)
 				break;
 		}
-		PrintPath(pathArray);
+		//PrintPath(pathArray);
 		return pathArray[0];
 	}
 
@@ -538,8 +538,8 @@ function ClearCubeAbove(c:Cube):Cube{
 private var MAX_STEP_Y = 100;
 
 function ClearCubeBelow(c:Cube):Cube{
-	for (var i:int = 0; i < MAX_STEP_Y; i++){
-		var cubeBelow:Cube = FindCubeAt(c.x, c.y-1, c.z);
+	for (var i:int = 1; i < MAX_STEP_Y; i++){
+		var cubeBelow:Cube = FindCubeAt(c.x, c.y-i, c.z);
 		if(cubeBelow)
 			return cubeBelow;
 	}
@@ -611,6 +611,8 @@ function CalculateBoundingBox(){
 			maxZ = c.z;
 	};
 }
+
+
 
 function BoundingBox():Bounds{
 	var b:Bounds;

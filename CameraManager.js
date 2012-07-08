@@ -170,7 +170,6 @@ function AlignCameraWithWorld(){
 
 	// Calculate World Center
 	var b:Bounds = cubeManager.BoundingBox();
-	print (b);
 
 	var center:Vector3 = Vector3(
 			b.center.x,
@@ -230,6 +229,8 @@ function OnGUI(){
 	}
 }
 
+// TODO: Use the closest touch to last touch on iOS
+
 function UpdateInput(){
 	// Block Input if There's an GUI Action
 	if (Time.time - lastGUIAction <= timeToBlockInput){
@@ -259,6 +260,8 @@ function UpdateInput(){
 	    }
 	}   
 }
+
+
 
 // TODO: Optimize the number of Ray Casts
 
@@ -299,6 +302,8 @@ function TouchMovedAt(p:Vector2){
 	if (!cameraPanning && UseZoomInCamera && Vector2.Distance(p, touchStartPoint) > cameraMovementTolerance * inGameGUI.resolutionRatio){
 		// Touch moved too much, trigger camera panning
 		cameraPanning = true;
+		// Reset Start Point once actual drag starts
+		startPointIn3D = RaycastHitForCameraPanning(p);
 	}
 
 	if (cameraPanning){
@@ -355,8 +360,6 @@ function TouchEndedAt(p:Vector2){
 
 function TouchCancelled(){
 	cubeManager.CubeReleased(null);
-
-
 }
 
 private var touchOffsetForIOS:float = 32;
@@ -372,8 +375,7 @@ function RaycastHitForCameraPanning(p:Vector2):Vector3{
 	//Do Ray Cast
 	var ray : Ray = camera.ScreenPointToRay(Vector3(p.x,p.y,0));
 	var h:RaycastHit;
-	var v:Vector2;
-	if (Physics.Raycast (ray, h, 200, kCameraPanningHelperLayerMask)){
+	if (Physics.Raycast (ray, h, 1000, kCameraPanningHelperLayerMask)){
 		return h.point;
 	}
 	return Vector3.zero;
@@ -383,12 +385,10 @@ function RaycastHitForPoint(p:Vector2){
 	//Do Ray Cast
 	var ray : Ray = camera.ScreenPointToRay(Vector3(p.x,p.y,0));
 	var h:RaycastHit;
-	var v:Vector2;
-	if (Physics.Raycast (ray, h, 200, Cube.kLayerMask)){
+	if (Physics.Raycast (ray, h, 1000, Cube.kLayerMask)){
+		// Hit
 		return h;
 	}
-	print(h.collider);
-	
 	return h;
 }
 
