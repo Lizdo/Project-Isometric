@@ -19,10 +19,13 @@ enum MinionState{
 };
 
 private var cubeManager:CubeManager;
+private var cameraManager:CameraManager;
 public var state:MinionState;
 
 function Awake (){
 	cubeManager = FindObjectOfType(CubeManager);
+	cameraManager = FindObjectOfType(CameraManager);
+
 	var g:GameObject = Instantiate(Resources.Load("TargetMarker", GameObject));
 	targetMarker = g.GetComponent(TargetMarker);
 }
@@ -36,6 +39,8 @@ function Start () {
 }
 
 function Update () {
+	if (cubeManager.state == LevelState.LevelStart)
+		return;
 
 	if (state == MinionState.Victory)
 		return;
@@ -194,6 +199,8 @@ function SetState(s:MinionState){
 		animation.CrossFade(AnimationName[s],blendTime);		
 	}
 
+	if (s == MinionState.Victory)
+		cameraManager.LookAt(transform.position);
 }
 
 function SetColor(c:Color){

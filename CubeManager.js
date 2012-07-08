@@ -18,33 +18,98 @@ private var cameraManager:CameraManager;
 
 private var cursor:Cube;
 private var log:GUIText;
+private var centerText:GUIText;
+
+public var state:LevelState = -1;
+
+enum LevelState{
+	LevelStart,
+	LevelInProgress,
+	LevelComplete,
+};
 
 function Awake(){
 	cameraManager = GetComponent(CameraManager);
 	cubes = FindObjectsOfType(Cube);
 	minions = FindObjectsOfType(Minion);
 
-	log = GameObject.Find("Log").GetComponent(GUIText);
+	log = Instantiate(Resources.Load("Log", GameObject)).GetComponent(GUIText);
+	centerText = Instantiate(Resources.Load("CenterText", GameObject)).GetComponent(GUIText);
+
 	cursor = Instantiate(Resources.Load("Cursor", GameObject)).GetComponent(Cube);	
 }
 
 function Start () {
 	cursor.Hide();
-	AddCubeAt(2,2,2,CubeType.Dirt);
-	AddCubeAt(2,2,3,CubeType.Dirt);	
-	AddCubeAt(2,2,4,CubeType.Water);		
+	// AddCubeAt(2,2,2,CubeType.Dirt);
+	// AddCubeAt(2,2,3,CubeType.Dirt);	
+	// AddCubeAt(2,2,4,CubeType.Water);		
 	isDirty = true;
 	currentAction = "Dirt";
 	print("Cube Manager Initiated");
+
+	SetState(LevelState.LevelStart);
 }
+
+private var levelComplete:boolean;
 
 function Update () {
 	if (isDirty){
 		CalculateBoundingBox();
 		isDirty = false;
 	}
+
+	if (!levelComplete && AllMinionVictory()){
+		levelComplete = true;
+		LevelComplete();
+	}
 }
 
+function LevelStart(){
+	SetState(LevelState.LevelInProgress);
+}
+
+function SetState(s:LevelState){
+	if(s == state)
+		return;
+	state = s;
+	switch(state){
+		case LevelState.LevelStart:
+			centerText.text = "Touch To Start";
+			break;
+		case LevelState.LevelInProgress:
+			centerText.text = "";
+			cameraManager.StopInitCamera();
+			break;
+		case LevelState.LevelComplete:
+			centerText.text = "Level Completed";
+			break;
+	}
+}
+
+function AllMinionVictory():boolean{
+	for (var m:Minion in minions){
+		if (m.state != MinionState.Victory)
+			return false;
+	}
+	return true;
+}
+
+function LevelComplete(){
+	SetState(LevelState.LevelComplete);
+	print("Level Complete!");
+	yield WaitForSeconds(5);
+	LoadNextlevel();	
+}
+
+private var MaxLevelID:int = 1;
+
+function LoadNextlevel(){
+	var index:int = Application.loadedLevel + 1;
+	if (index > MaxLevelID)
+		index = 0;
+	Application.LoadLevel(index);
+}
 
 ///////////////////////////
 // Undo/Redo Support

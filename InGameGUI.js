@@ -51,6 +51,9 @@ function LoadTextures(){
 
 
 function OnGUI () {
+	if (cubeManager.state == LevelState.LevelStart)
+		return;
+
 	GUI.skin = skin;
 
 	// Undo/Redo

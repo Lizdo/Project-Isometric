@@ -37,7 +37,7 @@ function LateUpdate () {
 // 	Automatically zoom to show the whole level
 
 private var UseZoomInCamera:boolean = true;
-
+public static var kInitialAnimationSequence:String = "InitialAnimationSequence";
 
 function InitCamera(){
 	isDirty = true;
@@ -46,6 +46,7 @@ function InitCamera(){
 
 	if (UseZoomInCamera){
 		InitZoomInCamera();
+		StartCoroutine(kInitialAnimationSequence);
 	}else{
 		InitZoomOutCamera();
 	}
@@ -60,7 +61,11 @@ function UpdateCamera() {
 	}
 };
 
-
+function StopInitCamera(){
+	StopCoroutine(kInitialAnimationSequence);
+	var m:Minion = cubeManager.AvailableMinion();
+	LookAt(m.transform.position);
+}
 
 ///////////////////////////
 // Zoom In Camera
@@ -88,11 +93,22 @@ function AlignCameraWithTarget(){
 	SetLookAt(lookAtTarget);
 }
 
+function InitialAnimationSequence(){
+	var m:Minion = cubeManager.AvailableMinion();
+	SetLookAt(m.transform.position);
+	yield WaitForSeconds(2);
+	LookAt(m.targetCube.SurfacePosition());
+	yield WaitForSeconds(4);
+	LookAt(m.transform.position);
+}
+
 ///////////////////////////
 // Zoom Out Camera
 ///////////////////////////
 
 private static var CameraLerpSpeed:float = 8.0;
+private static var CameraMoveLerpSpeed:float = 4.0;
+
 private var lookAtTarget:Vector3;
 
 //Distance doesn't matter in Ortho Cam, just need to make sure near clip/far clip not triggered
@@ -144,7 +160,7 @@ function UpdatePosition(){
 	if (Mathf.Abs(Vector3.Distance(targetPosition, transform.position)) < positionTolerance){
 		transform.position = targetPosition;
 	}else{
-		transform.position = Vector3.Lerp(transform.position, targetPosition, Time.deltaTime * CameraLerpSpeed);
+		transform.position = Vector3.Lerp(transform.position, targetPosition, Time.deltaTime * CameraMoveLerpSpeed);
 	}
 }
 
@@ -253,6 +269,9 @@ private var cameraMovementTolerance:float = 64.0;
 private var cameraPanning:boolean = false;
 
 function TouchBeganAt(p:Vector2){
+	if (cubeManager.state == LevelState.LevelStart)
+		return;
+
 	touchStartPoint = p;
 	cameraPanning = false;
 
@@ -274,6 +293,9 @@ function TouchBeganAt(p:Vector2){
 public var hit : RaycastHit;
 
 function TouchMovedAt(p:Vector2){
+	if (cubeManager.state == LevelState.LevelStart)
+		return;
+
 	if (!cameraPanning && UseZoomInCamera && Vector2.Distance(p, touchStartPoint) > cameraMovementTolerance * inGameGUI.resolutionRatio){
 		// Touch moved too much, trigger camera panning
 		cameraPanning = true;
@@ -300,6 +322,11 @@ function TouchMovedAt(p:Vector2){
 private static var BorderPercentageToTriggerCameraRotation:float = 0.2;
 
 function TouchEndedAt(p:Vector2){
+	if (cubeManager.state == LevelState.LevelStart){
+		cubeManager.LevelStart();
+		return;
+	}
+
 	// Do not even trigger the camera rotation
 	if (cameraPanning)
 		return;
