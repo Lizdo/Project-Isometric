@@ -27,6 +27,7 @@ enum CubeType{
 // Need to be called before CubeManager Initialize
 function Awake () {
 	SnapToGrid();
+	renderer.enabled = false;
 }
 
 public static var GRID_SIZE_X:float = 10.0;
@@ -45,6 +46,10 @@ public static function SnapPositionToGrid(v:Vector3):Vector3{
 	var z:int = Mathf.Round(v.z/GRID_SIZE_Z);
 
 	return Vector3(x,y,z);
+}
+
+function Start(){
+	renderer.enabled = true;
 }
 
 function Update () {
@@ -101,6 +106,14 @@ private var distanceXPenalty:float = 1.0001;
 function Distance(c:Cube):float{
 	// Manhattan Distance
 	return Mathf.Abs(c.x - x) * distanceXPenalty + Mathf.Abs(c.y - y) * distanceYPenalty + Mathf.Abs(c.z - z);
+}
+
+private var color:Color;
+
+function SetColor(c:Color){
+	print("CubeColor: " + c.ToString());
+	color = c;
+	renderer.material.color = c;
 }
 
 static function TypeWithString(s:String):CubeType{

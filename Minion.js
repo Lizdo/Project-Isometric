@@ -35,7 +35,8 @@ function Start () {
 	InitializeCurrentCube();
 
 	targetMarker.SetMinion(this);
-	SetColor(ColorWithHex(0x2f4939));
+	//SetColor(ColorWithHex(0x2f4939));
+	SetColor(RandomColorWithLightness(0.3));
 }
 
 function Update () {
@@ -159,6 +160,7 @@ function RotateTowardNextCube(){
 	transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * smooth); 
 }
 
+
 function MoveTowardNextCube(){
 	transform.position = Vector3.MoveTowards(transform.position,
 	    nextCube.SurfacePosition(),
@@ -207,4 +209,6 @@ function SetColor(c:Color){
 	color = c;
 	Renderer().material.color = c;
 	targetMarker.SetColor(c);
+	initialCube.SetColor(c);
+	targetCube.SetColor(c);
 }
