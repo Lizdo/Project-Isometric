@@ -42,7 +42,7 @@ private var UseZoomInCamera:boolean = true;
 function InitCamera(){
 	isDirty = true;
 	targetPosition = transform.position;
-
+	targetRotationY = RotationY;
 
 	if (UseZoomInCamera){
 		InitZoomInCamera();
@@ -95,8 +95,23 @@ function AlignCameraWithTarget(){
 private static var CameraLerpSpeed:float = 8.0;
 private var lookAtTarget:Vector3;
 
-function InitZoomOutCamera(){
+//Distance doesn't matter in Ortho Cam, just need to make sure near clip/far clip not triggered
+private var distance:float = 100;
 
+private var RotationX:float = 30;
+private var RotationY:float = 35;
+private var targetRotationY:float;
+private var RotationZ:float = 0;
+
+private var targetPosition:Vector3; 
+
+// Offset a little bit towards the top of the cubes
+private var YOffsetPercentage:float = 0.1;
+
+private var extentBuffer:float = 1.1;
+private var zoomOut:boolean = false;
+
+function InitZoomOutCamera(){
 }
 
 function UpdateZoomOutCamera(){
@@ -133,21 +148,7 @@ function UpdatePosition(){
 	}
 }
 
-//Distance doesn't matter in Ortho Cam, just need to make sure near clip/far clip not triggered
-private var distance:float = 100;
 
-private var RotationX:float = 30;
-private var RotationY:float = 45;
-private var targetRotationY:float = 45;
-private var RotationZ:float = 0;
-
-private var targetPosition:Vector3; 
-
-// Offset a little bit towards the top of the cubes
-private var YOffsetPercentage:float = 0.1;
-
-private var extentBuffer:float = 1.1;
-private var zoomOut:boolean = false;
 
 function AlignCameraWithWorld(){
 
@@ -196,7 +197,6 @@ function TurnCamera(degree:float){
 
 
 function PanCamera(offset:Vector3){
-	print("Panning Camera" + offset.ToString());
 	SetLookAt(lookAtTarget+offset);
 }
 
@@ -249,7 +249,7 @@ function UpdateInput(){
 private var touchStartPoint:Vector2;
 private var startPointIn3D:Vector3;
 
-private var cameraMovementTolerance:float = 20.0;
+private var cameraMovementTolerance:float = 64.0;
 private var cameraPanning:boolean = false;
 
 function TouchBeganAt(p:Vector2){
@@ -274,7 +274,7 @@ function TouchBeganAt(p:Vector2){
 public var hit : RaycastHit;
 
 function TouchMovedAt(p:Vector2){
-	if (!cameraPanning && UseZoomInCamera && Vector2.Distance(p, touchStartPoint) > cameraMovementTolerance){
+	if (!cameraPanning && UseZoomInCamera && Vector2.Distance(p, touchStartPoint) > cameraMovementTolerance * inGameGUI.resolutionRatio){
 		// Touch moved too much, trigger camera panning
 		cameraPanning = true;
 	}

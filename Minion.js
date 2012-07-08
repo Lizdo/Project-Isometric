@@ -6,6 +6,8 @@ public var nextCube:Cube;
 
 private var initialCube:Cube;
 public var needRecalculatePathfinding:boolean;
+private var color = Color.white;
+private var targetMarker:TargetMarker;
 
 enum MinionState{
 	Idle = 0,
@@ -19,14 +21,23 @@ public var state:MinionState;
 
 function Awake (){
 	cubeManager = FindObjectOfType(CubeManager);
+	var g:GameObject = Instantiate(Resources.Load("TargetMarker", GameObject));
+	targetMarker = g.GetComponent(TargetMarker);
 }
 
 function Start () {
 	SetState(MinionState.Move);
 	InitializeCurrentCube();
+
+	targetMarker.SetColor(color);
+	targetMarker.SetMinion(this);
 }
 
 function Update () {
+
+	if (state == MinionState.Victory)
+		return;
+
 	FindCurrentCube();
 	UpdateNextCube();
 	UpdatePosition();
@@ -63,6 +74,9 @@ function FindCurrentCube(){
 }
 
 function UpdateNextCube () {
+	if (state == MinionState.Victory)
+		return;
+
 	// Do Pathfinding Here
 	if (needRecalculatePathfinding){
 		print("Recalculte Pathfinding");
@@ -86,6 +100,9 @@ function UpdateNextCube () {
 }
 
 function UpdatePosition(){
+	if (state == MinionState.Victory)
+		return;
+			
 	SnapToCubeSurface();
 	
 	// Update Animation
@@ -156,4 +173,10 @@ function SetState(s:MinionState){
 		animation.CrossFade(AnimationName[s],blendTime);		
 	}
 
+}
+
+function SetColor(c:Color){
+	color = c;
+	renderer.material.color = c;
+	targetMarker.SetColor(c);
 }
