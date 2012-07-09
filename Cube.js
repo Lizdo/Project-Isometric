@@ -50,10 +50,21 @@ public static function SnapPositionToGrid(v:Vector3):Vector3{
 
 function Start(){
 	renderer.enabled = true;
+	color = renderer.material.color;	
 }
 
 function Update () {
 	transform.position = Vector3(x * GRID_SIZE_X, y * GRID_SIZE_Y, z * GRID_SIZE_Z);
+
+	if (isDestroyed){
+		var targetColor:Color = Color(color.r, color.g, color.b, 0);
+		var t:float = (Time.time - timeToStartDestroy)/destroyTime;
+		renderer.material.color = Color.Lerp(color, targetColor, t);
+		if (t >= 1){
+			//renderer.enabled = false;
+			Destroy(gameObject);			
+		}
+	}
 }
 
 function SetXYZ(newx:int, newy:int, newz:int){
@@ -92,11 +103,13 @@ function Passable():boolean{
 	return true;
 }
 
+private var timeToStartDestroy:float;
+private var destroyTime:float = 0.3;
+
 function Delete(){
 	isDestroyed = true;
-	renderer.enabled = false;
-	yield WaitForSeconds(0.5);
-	Destroy(gameObject);
+	timeToStartDestroy = Time.time;
+	renderer.material.shader = Shader.Find("Transparent/Diffuse");	
 }
 
 

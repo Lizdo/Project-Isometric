@@ -20,12 +20,13 @@ private var cursor:Cube;
 private var log:GUIText;
 private var centerText:GUIText;
 
-public var state:LevelState = -1;
+public var state:LevelState;
 
 enum LevelState{
-	LevelStart,
-	LevelInProgress,
-	LevelComplete,
+	Invalid			= 0,
+	LevelStart		= 1,
+	LevelInProgress = 2,
+	LevelComplete 	= 3,
 };
 
 function Awake(){
@@ -47,7 +48,6 @@ function Start () {
 	isDirty = true;
 	currentAction = "Dirt";
 	print("Cube Manager Initiated");
-
 	SetState(LevelState.LevelStart);
 }
 
@@ -76,6 +76,8 @@ function SetState(s:LevelState){
 	switch(state){
 		case LevelState.LevelStart:
 			centerText.text = "Touch To Start";
+			print("Touch To Start");
+			
 			break;
 		case LevelState.LevelInProgress:
 			centerText.text = "";
