@@ -231,6 +231,7 @@ function OnGUI(){
 
 // TODO: Use the closest touch to last touch on iOS
 
+
 function UpdateInput(){
 	// Block Input if There's an GUI Action
 	if (Time.time - lastGUIAction <= timeToBlockInput){
@@ -241,7 +242,8 @@ function UpdateInput(){
 	    var touches = Input.touches;
 	    if (touches.length < 1)
 	        return;
-	    var touch:Touch = touches[0];
+	    var touch:Touch = ClosestTouchPointFromLast(touches);
+	    lastTouchPoint = touch.position;
 	    if(touch.phase == TouchPhase.Began){
 	        TouchBeganAt(touch.position);
 	    }else if(touch.phase == TouchPhase.Moved
@@ -261,6 +263,20 @@ function UpdateInput(){
 	}   
 }
 
+private var lastTouchPoint:Vector2 = Vector2.zero;
+
+function ClosestTouchPointFromLast(touches:Array):Touch{
+	var minDistance:float = 1000;
+	var closestTouch:Touch;
+	for (var touch:Touch in touches){
+		var distance:float = Vector2.Distance(touch.position, lastTouchPoint);
+		if (distance < minDistance){
+			closestTouch = touch;
+			minDistance = distance;
+		}
+	}
+	return closestTouch;
+}
 
 
 // TODO: Optimize the number of Ray Casts
@@ -386,7 +402,7 @@ function RaycastHitForPoint(p:Vector2){
 	var ray : Ray = camera.ScreenPointToRay(Vector3(p.x,p.y,0));
 	var h:RaycastHit;
 	if (Physics.Raycast (ray, h, 1000, Cube.kLayerMask)){
-		// Hit
+		// hit
 		return h;
 	}
 	return h;
