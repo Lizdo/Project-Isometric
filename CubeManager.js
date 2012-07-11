@@ -186,7 +186,7 @@ function AddCubeAt(x:int, y:int, z:int, type:CubeType){
 	var g:GameObject;
 	switch(type){
 		case CubeType.Dirt:
-			g = Instantiate(Resources.Load("CubeDirt", GameObject));
+			g = Instantiate(Resources.Load("CubeDirt_Temp", GameObject));
 			break;
 		case CubeType.Water:
 			g = Instantiate(Resources.Load("CubeWater", GameObject));

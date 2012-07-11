@@ -1,3 +1,7 @@
 .DS_Store
 iso.sublime-project
 iso.sublime-workspace
+Temp/
+ProjectISO/
+Library/Cache/
+Library/previews/
