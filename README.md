@@ -2,7 +2,7 @@
 
 Unity Script for my personal isometric block building game. Still work in progress. Project started  on July.1 2012.
 
-![Screenshot](https://github.com/Lizdo/Project-Isometric/blob/master/Screenshot/Screenshot.July.1.png?raw=true)
+![Screenshot](https://github.com/Lizdo/Project-Isometric/blob/master/Screenshot/Screenshot.png?raw=true)
 
 ## Current Features
 
