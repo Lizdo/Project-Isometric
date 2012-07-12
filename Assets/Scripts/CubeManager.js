@@ -22,6 +22,11 @@ private var centerText:GUIText;
 
 public var state:LevelState;
 
+public static var kActionDelete:String = "Delete";
+public static var kActionDirt:String = "Dirt";
+public static var kActionWater:String = "Water";
+public static var kActionGrass:String = "Grass";
+
 enum LevelState{
 	Invalid			= 0,
 	LevelStart		= 1,
@@ -46,7 +51,7 @@ function Start () {
 	// AddCubeAt(2,2,3,CubeType.Dirt);	
 	// AddCubeAt(2,2,4,CubeType.Water);		
 	isDirty = true;
-	currentAction = "Dirt";
+	currentAction = kActionDirt;
 	print("Cube Manager Initiated");
 	SetState(LevelState.LevelStart);
 }
@@ -200,6 +205,17 @@ function AddCubeAt(x:int, y:int, z:int, type:CubeType){
 	c.y = y;
 	c.z = z;
 	cubes.Add(c);
+
+	// TODO: Better data structure
+	if (c.type == CubeType.Dirt && dirtCount != -1){
+		if (dirtCount > 1){
+			dirtCount--;
+		}else{
+			dirtCount = 0;
+			currentAction = "";
+		}
+	}
+
 	isDirty = true;
 	cameraManager.isDirty = true;
 }
@@ -216,13 +232,36 @@ function RemoveCubeAt(x:int, y:int, z:int){
 				return;
 			cubes.RemoveAt(i);
 			c.Delete();
+
+			// TODO: Better data structure
+			if (c.type == CubeType.Dirt && dirtCount != -1){
+				if (dirtCount == 0 && currentAction == "")
+					currentAction = kActionDirt;
+				dirtCount++;
+			}
 			return;
 		}
 	}
 }
 
 
-public static var kActionDelete:String = "Delete";
+
+// -1 = infinite
+public var dirtCount:int = 5;
+
+
+function ActionAvailable(action:String):boolean{
+	if (action == kActionDelete)
+		return true;
+	if (action == kActionDirt){
+		if (dirtCount == -1 || dirtCount > 0)
+			return true;
+	}
+		
+	return false;
+}
+
+
 
 ///////////////////////////
 // Input Callback
@@ -257,7 +296,7 @@ function CubeReleased(c:Cube){
 		RemoveCubeOperation(cursor.x, cursor.y, cursor.z);
 	}
 
-	if (currentAction != kActionDelete && !FindCubeAt(cursor.x, cursor.y, cursor.z)){
+	if (currentAction != kActionDelete && currentAction != "" && !FindCubeAt(cursor.x, cursor.y, cursor.z)){
 		AddCubeOperation(cursor.x, cursor.y, cursor.z, Cube.TypeWithString(currentAction));	
 	}
 	

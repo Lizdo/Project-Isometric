@@ -81,7 +81,7 @@ function OnGUI () {
 		var onTexture:Texture = actionButtonOnTexture[i];
 		var offTexture:Texture = actionButtonOffTexture[i];
 		
-		if (cubeManager.currentAction == action){
+		if (cubeManager.currentAction == action && cubeManager.ActionAvailable(action)){
 			if(GUILayout.Button(GUIContent(action, onTexture), GUILayout.MaxWidth(buttonSize), GUILayout.MaxHeight(buttonSize))){
 				//Do Nothing
 			}
@@ -93,10 +93,10 @@ function OnGUI () {
 		
 	}
 
+	//TODO: Display the remaining cube count
+
 	GUILayout.EndHorizontal();
 	GUILayout.EndArea();
-
-	
 
 
 }
