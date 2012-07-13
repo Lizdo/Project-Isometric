@@ -5,6 +5,8 @@ public var resolutionRatio:int = 1;
 private var padding:float = 8;
 private var buttonSize:float = 64;
 
+private var buttonLabelWidth:float = 4;
+
 private var redo:Texture;
 private var undo:Texture;
 
@@ -30,6 +32,7 @@ function Start(){
 
 	padding *= resolutionRatio;
 	buttonSize *= resolutionRatio;
+	buttonLabelWidth *= resolutionRatio;
 
 	cubeManager = GetComponent(CubeManager);
 	skin = Resources.Load("Skin", GUISkin);
@@ -67,7 +70,7 @@ function OnGUI () {
 
 	// Button Selection
 
-	var w:float = (buttonSize + padding) * actions.length;
+	var w:float = (buttonSize + padding + buttonLabelWidth) * actions.length;
 	var h:float = buttonSize;
 	var r:Rect = Rect(Screen.width - w,
 	    Screen.height - padding - buttonSize, //padding,
@@ -90,6 +93,8 @@ function OnGUI () {
 				cubeManager.currentAction = action;
 			}			
 		}
+
+		GUILayout.Label(cubeManager.ActionCountInString(action));
 		
 	}
 

@@ -12,9 +12,6 @@ function Awake(){
 
 function Start () {
 	Application.targetFrameRate = 60.0;
-
-
-	
 	InitCamera();
 	
 	print("Camera Manager Initiated");

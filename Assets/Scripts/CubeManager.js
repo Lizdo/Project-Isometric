@@ -16,7 +16,7 @@ private var minions:Array;
 private var isDirty:boolean;
 private var cameraManager:CameraManager;
 
-private var cursor:Cube;
+private var cursor:Cursor;
 private var log:GUIText;
 private var centerText:GUIText;
 
@@ -42,7 +42,7 @@ function Awake(){
 	log = Instantiate(Resources.Load("Log", GameObject)).GetComponent(GUIText);
 	centerText = Instantiate(Resources.Load("CenterText", GameObject)).GetComponent(GUIText);
 
-	cursor = Instantiate(Resources.Load("Cursor", GameObject)).GetComponent(Cube);	
+	cursor = Instantiate(Resources.Load("Cursor", GameObject)).GetComponent(Cursor);
 }
 
 function Start () {
@@ -251,16 +251,36 @@ public var dirtCount:int = 5;
 
 
 function ActionAvailable(action:String):boolean{
-	if (action == kActionDelete)
+	var i:int = ActionCount(action);
+	if (i == -1)
 		return true;
-	if (action == kActionDirt){
-		if (dirtCount == -1 || dirtCount > 0)
-			return true;
-	}
-		
+	if (i > 0)
+		return true;
 	return false;
 }
 
+private function ActionCount(action:String):int{
+	if (action == kActionDelete)
+		return -1;
+	if (action == kActionDirt){
+		return dirtCount;
+	}
+	return 0;
+}
+
+function ActionCountInString(action:String):String{
+	var count:int = ActionCount(action);
+	if (count == -1)
+		return "∞";
+	return count.ToString();
+}
+
+function CurrentActionAvailable():boolean{
+	if (ActionCount(currentAction)>0 || ActionCount(currentAction) == -1){
+		return true;
+	}
+	return false;
+}
 
 
 ///////////////////////////
@@ -271,9 +291,17 @@ function CubeTouched(c:Cube, n:Vector3){
 	if (!c)
 		return;
 
+
+	// Delete Cube
 	if (currentAction == kActionDelete){
 		cursor.SetXYZ(c.x, c.y, c.z);
 		cursor.Show();
+		if (c.CanDelete()){
+			cursor.Enable();
+		}else{
+			cursor.Disable();
+		}
+
 		return;
 	}
 
@@ -282,8 +310,16 @@ function CubeTouched(c:Cube, n:Vector3){
 		return;
 	}
 
+
+	// Add Cube
 	cursor.SetXYZ(c.x+n.x, c.y+n.y, c.z+n.z);	
 	cursor.Show();
+
+	if (CurrentActionAvailable())
+		cursor.Enable();
+	else
+		cursor.Disable();
+
 }
 
 function CubeReleased(c:Cube){

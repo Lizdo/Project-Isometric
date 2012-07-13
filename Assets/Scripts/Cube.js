@@ -12,7 +12,7 @@ public var isDestroyed:boolean = false;
 public var F:float;
 public var G:float;
 public var H:float;
-public var parentCube:Cube;
+public var parentCube:Cube;	//Used in Pathfinding, the shortest path is from the parentCube
 
 
 public static var kLayerMask:int = 1 << 8;
