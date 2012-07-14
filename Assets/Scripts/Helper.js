@@ -16,6 +16,8 @@ static function RandomColorWithLightness(l:float):Color{
 	return ColorWithHSL(h,s,l);
 }
 
+static var kDefaultColor:Color = Color.white;
+static var kDisabledColor = Color.gray;
 
 static function ColorWithHSL(h:float, s:float, l:float):Color{
 	h = Mathf.Clamp(h, 0, 360);

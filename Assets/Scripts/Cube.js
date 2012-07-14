@@ -18,8 +18,8 @@ public var parentCube:Cube;	//Used in Pathfinding, the shortest path is from the
 public static var kLayerMask:int = 1 << 8;
 
 enum CubeType{
-	None,
-	Dirt,
+	None,	// Cursor
+	Dirt,	// 
 	Grass,
 	Water,
 };

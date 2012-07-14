@@ -1,16 +1,17 @@
 #pragma strict
 
-import Operation;
-
-public var minX:float;
-public var maxX:float;
-public var minY:float;
-public var maxY:float;
-public var minZ:float;
-public var maxZ:float;
-
 public var currentAction:String;
+public var state:LevelState;
 
+//Actions Separated by Pipe (|)
+public var availableActions:String = "Delete|Dirt|Water|Grass";
+//Correspondent to actions, Separated by Pipe (|), -1 = infinite	
+public var availableActionCounts:String = "-1|5|0|0"; 
+
+public var actions:Array = new Array();
+private var actionCounts:Array = new Array();
+
+private var bounds:Bounds;
 private var cubes:Array;
 private var minions:Array;
 private var isDirty:boolean;
@@ -20,7 +21,6 @@ private var cursor:Cursor;
 private var log:GUIText;
 private var centerText:GUIText;
 
-public var state:LevelState;
 
 public static var kActionDelete:String = "Delete";
 public static var kActionDirt:String = "Dirt";
@@ -43,6 +43,11 @@ function Awake(){
 	centerText = Instantiate(Resources.Load("CenterText", GameObject)).GetComponent(GUIText);
 
 	cursor = Instantiate(Resources.Load("Cursor", GameObject)).GetComponent(Cursor);
+
+
+	SetLevelCubeFlag();
+	ParseActions();
+
 }
 
 function Start () {
@@ -53,8 +58,6 @@ function Start () {
 	isDirty = true;
 	currentAction = kActionDirt;
 	SetState(LevelState.LevelStart);
-	SetLevelCubeFlag();
-
 	print("Cube Manager Initiated");
 
 }
@@ -73,6 +76,59 @@ function Update () {
 	}
 }
 
+
+function ParseActions(){
+	if (availableActions == ""){
+		actions = new Array(
+			kActionDelete,
+			kActionDirt,
+			kActionGrass,
+			kActionWater
+			);
+		actionCounts = new Array(-1, 5, 0, 0);
+		return;
+	}
+
+	var actionTexts:String[] = availableActions.Split("|"[0]);
+	var actionCountTexts:String[] = availableActionCounts.Split("|"[0]);
+
+	if (actionTexts.length != actionCountTexts.length){
+		Debug.LogError("Action Count not correct! Check available action setting!");
+		return;
+	}
+
+	for (var i:int = 0; i < actionTexts.length; i++ ){
+		print(actionTexts[i]);
+		print(actionCountTexts[i]);
+		
+		var action:String = actionTexts[i];
+		var count:int = parseInt(actionCountTexts[i]);
+
+		if (!IsActionValid(action)){
+			Debug.LogError("Invalid action in available action setting!");
+			return;
+		}
+
+		actions.Add(action);
+		actionCounts.Add(count);
+	}
+}
+
+function IsActionValid(action:String):boolean{
+	var validActions:Array = new Array(
+		kActionDelete,
+		kActionDirt,
+		kActionGrass,
+		kActionWater
+		);
+
+	for (var s:String in validActions){
+		action = s;
+		return true;
+	}
+
+	return false;
+}
 
 function SetLevelCubeFlag(){
 	for (var c:Cube in cubes) {
@@ -217,14 +273,7 @@ function AddCubeAt(x:int, y:int, z:int, type:CubeType){
 	cubes.Add(c);
 
 	// TODO: Better data structure
-	if (c.type == CubeType.Dirt && dirtCount != -1){
-		if (dirtCount > 1){
-			dirtCount--;
-		}else{
-			dirtCount = 0;
-			currentAction = "";
-		}
-	}
+	ModifyActionCount(currentAction, -1);
 
 	isDirty = true;
 	cameraManager.isDirty = true;
@@ -243,12 +292,7 @@ function RemoveCubeAt(x:int, y:int, z:int){
 			cubes.RemoveAt(i);
 			c.Delete();
 
-			// TODO: Better data structure
-			if (c.type == CubeType.Dirt && dirtCount != -1){
-				if (dirtCount == 0 && currentAction == "")
-					currentAction = kActionDirt;
-				dirtCount++;
-			}
+			ModifyActionCount(c.type.ToString(), 1);
 			return;
 		}
 	}
@@ -270,12 +314,31 @@ function ActionAvailable(action:String):boolean{
 }
 
 private function ActionCount(action:String):int{
-	if (action == kActionDelete)
-		return -1;
-	if (action == kActionDirt){
-		return dirtCount;
+	for (var i:int = 0; i < actions.length; i++){
+		if (actions[i] == action){
+			return actionCounts[i];
+		}
 	}
+	Debug.LogError("Action not found: " + action);	
 	return 0;
+}
+
+private function ModifyActionCount(action:String, amount:int){
+	for (var i:int = 0; i < actions.length; i++){
+		if (actions[i] == action){
+			if (actionCounts[i] == -1){
+				return;				
+			}else{
+				var c:int = actionCounts[i];
+				actionCounts[i] = c + amount;
+				if (action == currentAction && actionCounts[i] == 0){
+					currentAction = "";
+				}
+				return;
+			}
+		}
+	}
+	Debug.LogError("Action not found: " + action);	
 }
 
 function ActionCountInString(action:String):String{
@@ -681,6 +744,13 @@ function AdjucentCubes(c:Cube):Array{
 }
 
 function CalculateBoundingBox(){
+	var minX:int;
+	var minY:int;
+	var minZ:int;
+	var maxX:int;
+	var maxY:int;
+	var maxZ:int;
+
 	for (var c:Cube in cubes) {
 		if (c.type == CubeType.None)
 			continue;
@@ -697,14 +767,18 @@ function CalculateBoundingBox(){
 		if (c.z > maxZ)
 			maxZ = c.z;
 	};
+
+	bounds.SetMinMax(Vector3(minX, minY, minZ),
+		Vector3(maxX, maxY, maxZ));
 }
 
 
 
 function BoundingBox():Bounds{
-	var b:Bounds;
-	b.SetMinMax(Vector3(minX*Cube.GRID_SIZE_X, minY*Cube.GRID_SIZE_Y, minZ*Cube.GRID_SIZE_Z), 
-		Vector3(maxX*Cube.GRID_SIZE_X, maxY*Cube.GRID_SIZE_Y, maxZ*Cube.GRID_SIZE_Z));
+	var b:Bounds = bounds;
+	b.Expand(Vector3(Cube.GRID_SIZE_X,
+		Cube.GRID_SIZE_Y,
+		Cube.GRID_SIZE_Z));
 	return b;
 }
 

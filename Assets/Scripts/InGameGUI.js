@@ -1,4 +1,5 @@
 #pragma strict
+import Helper;
 
 public var resolutionRatio:int = 1;
 
@@ -12,7 +13,6 @@ private var cubeManager:CubeManager;
 private var skin:GUISkin;
 
 function Start(){
-	LoadTextures();
 	
 	if (Application.platform == RuntimePlatform.IPhonePlayer){
 	    switch (iPhone.generation){
@@ -34,10 +34,14 @@ function Start(){
 	actionCountPadding *= resolutionRatio;
 
 	cubeManager = GetComponent(CubeManager);
+	actions = cubeManager.actions;	
 	skin = Resources.Load("Skin", GUISkin);
+
+	LoadTextures();
+
 }
 
-private var actions:Array = ["Delete","Dirt", "Water", "Grass"];
+private var actions:Array;
 private var actionButtonOnTexture:Array = new Array();
 private var actionButtonOffTexture:Array = new Array();
 
@@ -77,7 +81,7 @@ function OnGUI () {
 
 	// Rotate Left/Right
 
-	var rotateButtonSize:float = buttonSize;
+	var rotateButtonSize:float = buttonSize/2;
 
 	GUI.Label(Rect(padding, 
 		Screen.height/2 - rotateButtonSize/2, 
@@ -104,22 +108,35 @@ function OnGUI () {
 		var action:String = actions[i];
 		var onTexture:Texture = actionButtonOnTexture[i];
 		var offTexture:Texture = actionButtonOffTexture[i];
+		var available:boolean = cubeManager.ActionAvailable(action);
 		
-		if (cubeManager.currentAction == action && cubeManager.ActionAvailable(action)){
+		if (cubeManager.currentAction == action && available){
 			if(GUILayout.Button(GUIContent(action, onTexture), GUILayout.MaxWidth(buttonSize), GUILayout.MaxHeight(buttonSize))){
 				//Do Nothing
 			}
 		}else{
+			if (!available)
+				GUI.color = kDisabledColor;
+
 			if(GUILayout.Button(GUIContent(action, offTexture), GUILayout.MaxWidth(buttonSize), GUILayout.MaxHeight(buttonSize))){
-				cubeManager.currentAction = action;
-			}			
+				
+				if (available)
+					cubeManager.currentAction = action;
+			}
+
+			GUI.color = kDefaultColor;
 		}
 
 		// Set action count padding to make numbers close to the icon
 		GUI.skin.label.padding.left = actionCountPadding;
 
-		GUILayout.Label(cubeManager.ActionCountInString(action));
+		var countDescription:String = cubeManager.ActionCountInString(action);
+		if (countDescription == "0")
+			GUI.color = ColorWithHex(0x9d3519);
 
+		GUILayout.Label(countDescription);
+
+		GUI.color = kDefaultColor;
 		GUI.skin.label.padding.left = 0;
 		
 	}
