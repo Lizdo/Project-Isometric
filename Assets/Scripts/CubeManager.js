@@ -4,9 +4,9 @@ public var currentAction:String;
 public var state:LevelState;
 
 //Actions Separated by Pipe (|)
-public var availableActions:String = "Delete|Dirt|Water|Grass";
+public var availableActions:String = "Delete|Dirt|Gear";
 //Correspondent to actions, Separated by Pipe (|), -1 = infinite	
-public var availableActionCounts:String = "-1|5|0|0"; 
+public var availableActionCounts:String = "-1|5|3"; 
 
 public var actions:Array = new Array();
 private var actionCounts:Array = new Array();
@@ -25,7 +25,8 @@ private var centerText:GUIText;
 public static var kActionDelete:String = "Delete";
 public static var kActionDirt:String = "Dirt";
 public static var kActionWater:String = "Water";
-public static var kActionGrass:String = "Grass";
+public static var kActionGear:String = "Gear";
+public static var kActionMinion:String = "Minion";
 
 enum LevelState{
 	Invalid			= 0,
@@ -44,8 +45,6 @@ function Awake(){
 
 	cursor = Instantiate(Resources.Load("Cursor", GameObject)).GetComponent(Cursor);
 
-
-	SetLevelCubeFlag();
 	ParseActions();
 
 }
@@ -82,10 +81,9 @@ function ParseActions(){
 		actions = new Array(
 			kActionDelete,
 			kActionDirt,
-			kActionGrass,
 			kActionWater
 			);
-		actionCounts = new Array(-1, 5, 0, 0);
+		actionCounts = new Array(-1, 5, 0);
 		return;
 	}
 
@@ -118,7 +116,7 @@ function IsActionValid(action:String):boolean{
 	var validActions:Array = new Array(
 		kActionDelete,
 		kActionDirt,
-		kActionGrass,
+		kActionMinion,
 		kActionWater
 		);
 
@@ -128,12 +126,6 @@ function IsActionValid(action:String):boolean{
 	}
 
 	return false;
-}
-
-function SetLevelCubeFlag(){
-	for (var c:Cube in cubes) {
-		c.isAddedByPlayer = false;
-	}
 }
 
 function LevelStart(){
@@ -255,17 +247,8 @@ function Redo(){
 // Never call this directly!!
 function AddCubeAt(x:int, y:int, z:int, type:CubeType){
 	var g:GameObject;
-	switch(type){
-		case CubeType.Dirt:
-			g = Instantiate(Resources.Load("CubeDirt_Temp", GameObject));
-			break;
-		case CubeType.Water:
-			g = Instantiate(Resources.Load("CubeWater", GameObject));
-			break;
-		case CubeType.Grass:
-			g = Instantiate(Resources.Load("CubeGrass", GameObject));
-			break;
-	}
+	g = Instantiate(Resources.Load("Cube"+ type.ToString(), GameObject));
+			
 	var c:Cube = g.GetComponent(Cube);
 	c.x = x;
 	c.y = y;
@@ -332,7 +315,7 @@ private function ModifyActionCount(action:String, amount:int){
 				var c:int = actionCounts[i];
 				actionCounts[i] = c + amount;
 				if (action == currentAction && actionCounts[i] == 0){
-					currentAction = "";
+					//currentAction = "";
 				}
 				return;
 			}
@@ -363,7 +346,6 @@ function CurrentActionAvailable():boolean{
 function CubeTouched(c:Cube, n:Vector3){
 	if (!c)
 		return;
-
 
 	// Delete Cube
 	if (currentAction == kActionDelete){
@@ -399,6 +381,9 @@ function CubeReleased(c:Cube){
 	cursor.Hide();
 
 	if (!c)
+		return;
+
+	if (!CurrentActionAvailable())
 		return;
 
 	if (currentAction == kActionDelete && FindCubeAt(cursor.x, cursor.y, cursor.z)){
@@ -712,7 +697,7 @@ function FindCubeAtPosition(p:Vector3):Cube{
 }
 
 function Available(c:Cube):boolean{
-	if (!c.Passable())
+	if (!c.CanPass())
 		return false;
 	if (CubeAbove(c))
 		return false;

@@ -6,7 +6,6 @@ public var z:int;
 
 public var type:CubeType;
 public var isDestroyed:boolean = false;
-public var isAddedByPlayer:boolean = true;
 
 // Used by pathfinding
 public var F:float;
@@ -20,9 +19,14 @@ public static var kLayerMask:int = 1 << 8;
 enum CubeType{
 	None,	// Cursor
 	Dirt,	// 
-	Grass,
+	Minion,
 	Water,
+	Metal,
+	Rock,
+	Gear,
 };
+
+private static var typeOfCubes:int = 7;
 
 // Need to be called before CubeManager Initialize
 function Awake () {
@@ -92,16 +96,11 @@ function SurfacePosition():Vector3{
 
 
 function CanDelete():boolean{
-	if (type == CubeType.Grass)
-		return false;
-	if (!isAddedByPlayer)
-		return false;
 	return true;
 }
 
-function Passable():boolean{
-	if (type == CubeType.Water)
-		return false;
+// Override by subclass
+function CanPass():boolean{
 	return true;
 }
 
@@ -132,16 +131,29 @@ function SetColor(c:Color){
 }
 
 static function TypeWithString(s:String):CubeType{
+	for (var i:int = 0; i < typeOfCubes; i++){
+		if (System.Enum.GetNames(typeof(CubeType))[i] == s)
+			return i;
+	}
+
+
+	/*
+
 	if (s == "Dirt"){
 		return CubeType.Dirt;
 	}
-	if (s == "Grass"){
-		return CubeType.Grass;
+	if (s == "Minion"){
+		return CubeType.Minion;
 	}
 	if (s == "Water"){
 		return CubeType.Water;
 	}
+	if (s == "Gear")
+		return CubeType.Gear;
 
-	print("Warning: Wrong Cube Type???");
+	*/
+
+	Debug.LogError("Wrong Cube Type: " + s);
+
 	return CubeType.None;
 }
