@@ -52,8 +52,11 @@ function Start () {
 	// AddCubeAt(2,2,4,CubeType.Water);		
 	isDirty = true;
 	currentAction = kActionDirt;
-	print("Cube Manager Initiated");
 	SetState(LevelState.LevelStart);
+	SetLevelCubeFlag();
+
+	print("Cube Manager Initiated");
+
 }
 
 private var levelComplete:boolean;
@@ -67,6 +70,13 @@ function Update () {
 	if (!levelComplete && AllMinionVictory()){
 		levelComplete = true;
 		LevelComplete();
+	}
+}
+
+
+function SetLevelCubeFlag(){
+	for (var c:Cube in cubes) {
+		c.isAddedByPlayer = false;
 	}
 }
 

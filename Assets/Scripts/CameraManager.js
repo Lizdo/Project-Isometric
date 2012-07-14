@@ -112,7 +112,7 @@ private var lookAtTarget:Vector3;
 private var distance:float = 100;
 
 private var RotationX:float = 30;
-private var RotationY:float = 35;
+private var RotationY:float = 45;
 private var targetRotationY:float;
 private var RotationZ:float = 0;
 

@@ -6,7 +6,7 @@ public var z:int;
 
 public var type:CubeType;
 public var isDestroyed:boolean = false;
-
+public var isAddedByPlayer:boolean = true;
 
 // Used by pathfinding
 public var F:float;
@@ -50,7 +50,7 @@ public static function SnapPositionToGrid(v:Vector3):Vector3{
 
 function Start(){
 	renderer.enabled = true;
-	color = renderer.material.color;	
+	color = renderer.material.color;
 }
 
 function Update () {
@@ -93,6 +93,8 @@ function SurfacePosition():Vector3{
 
 function CanDelete():boolean{
 	if (type == CubeType.Grass)
+		return false;
+	if (!isAddedByPlayer)
 		return false;
 	return true;
 }
