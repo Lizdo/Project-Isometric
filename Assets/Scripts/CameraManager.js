@@ -13,7 +13,11 @@ function Awake(){
 function Start () {
 	Application.targetFrameRate = 60.0;
 	InitCamera();
-	
+
+	if (UseZoomInCamera){
+		StartCoroutine(kInitialAnimationSequence);
+	}
+
 	print("Camera Manager Initiated");
 }
 
@@ -33,7 +37,25 @@ function LateUpdate () {
 // Automated Camera:
 // 	Automatically zoom to show the whole level
 
-private var UseZoomInCamera:boolean = true;
+public var UseZoomInCamera:boolean = true;
+
+public function ZoomOut(){
+	if (!UseZoomInCamera){
+		return;
+	}
+	UseZoomInCamera = false;
+	InitCamera();
+}
+
+public function ZoomIn(){
+	if (UseZoomInCamera){
+		return;	
+	}
+
+	UseZoomInCamera = true;
+	InitCamera();
+}
+
 public static var kInitialAnimationSequence:String = "InitialAnimationSequence";
 
 function InitCamera(){
@@ -43,7 +65,6 @@ function InitCamera(){
 
 	if (UseZoomInCamera){
 		InitZoomInCamera();
-		StartCoroutine(kInitialAnimationSequence);
 	}else{
 		InitZoomOutCamera();
 	}
@@ -125,6 +146,7 @@ private var extentBuffer:float = 1.1;
 private var zoomOut:boolean = false;
 
 function InitZoomOutCamera(){
+	AlignCameraWithWorld();
 }
 
 function UpdateZoomOutCamera(){
@@ -165,9 +187,7 @@ function UpdatePosition(){
 
 function AlignCameraWithWorld(){
 
-	// Calculate World Center
-	var b:Bounds = cubeManager.BoundingBox();
-
+	var b:Bounds = cubeManager.bounds;
 	var center:Vector3 = Vector3(
 			b.center.x,
 			b.center.y + b.size.y * YOffsetPercentage,

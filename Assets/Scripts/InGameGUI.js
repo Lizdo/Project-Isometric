@@ -10,7 +10,15 @@ private var actionCountPadding:float = -10;
 private var buttonLabelWidth:float = 4;
 
 private var cubeManager:CubeManager;
+private var cameraManager:CameraManager;
+
 private var skin:GUISkin;
+
+
+function Awake(){
+	cubeManager = GetComponent(CubeManager);
+	cameraManager = GetComponent(CameraManager);
+}
 
 function Start(){
 	
@@ -33,7 +41,6 @@ function Start(){
 	buttonLabelWidth *= resolutionRatio;
 	actionCountPadding *= resolutionRatio;
 
-	cubeManager = GetComponent(CubeManager);
 	actions = cubeManager.actions;	
 	skin = Resources.Load("Skin", GUISkin);
 
@@ -49,6 +56,10 @@ private var redo:Texture;
 private var undo:Texture;
 private var rotateLeft:Texture;
 private var rotateRight:Texture;
+private var diamond:Texture;
+
+private var zoomIn:Texture;
+private var zoomOut:Texture;
 
 function LoadTextures(){
 	redo = Resources.Load("Redo", Texture);
@@ -57,6 +68,11 @@ function LoadTextures(){
 	rotateLeft = Resources.Load("RotateLeft", Texture);
 	rotateRight = Resources.Load("RotateRight", Texture);
 
+	diamond = Resources.Load("Diamond", Texture);
+	
+	zoomIn = Resources.Load("ZoomIn", Texture);
+	zoomOut = Resources.Load("ZoomOut", Texture);
+	
 	for (var i:int = 0;  i < actions.length; i++) {
 		actionButtonOnTexture[i] = Resources.Load(actions[i] + "On", Texture);
 		actionButtonOffTexture[i] = Resources.Load(actions[i] + "Off", Texture);		
@@ -70,17 +86,44 @@ function OnGUI () {
 
 	GUI.skin = skin;
 
-	// Undo/Redo
+	UndoRedoButtons();
+	RotateButtons();
+	ActionButtons();
+	ScoreUI();
+	if (cubeManager.telescopeActive){
+		ZoomUI();		
+	}
+}
 
+
+function UndoRedoButtons(){
 	if (GUI.Button(Rect(padding,padding,buttonSize,buttonSize), GUIContent("Undo", undo))){
 		cubeManager.Undo();
 	}
 	if (GUI.Button(Rect(padding*2+buttonSize,padding,buttonSize,buttonSize),GUIContent("Redo", redo))){
 		cubeManager.Redo();
 	}
+}
+function ZoomUI(){
+	var r:Rect = Rect(Screen.width - padding - buttonSize,
+		padding,
+		buttonSize,
+		buttonSize
+		);
 
-	// Rotate Left/Right
+	if (cameraManager.UseZoomInCamera){
+		if (GUI.Button(r, GUIContent("ZoomOut", zoomOut))){
+			cameraManager.ZoomOut();
+		}	
+	}else{
+		if (GUI.Button(r, GUIContent("ZoomIn", zoomIn))){
+			cameraManager.ZoomIn();
+		}
+	}
+}
 
+
+function RotateButtons(){
 	var rotateButtonSize:float = buttonSize/2;
 
 	GUI.Label(Rect(padding, 
@@ -92,7 +135,38 @@ function OnGUI () {
 		Screen.height/2 - rotateButtonSize/2, 
 		rotateButtonSize, 
 		rotateButtonSize), rotateRight);
+}
 
+function ScoreUI(){
+	// Draw Diamonds
+	var diamondCount:int = cubeManager.diamondCount;
+
+	if (diamondCount == 0)
+		return;
+
+	var diamondSize:float = buttonSize/2;
+	var diamondPadding:float = 0;
+
+	var w:float = (diamondSize+diamondPadding) * diamondCount;
+	var h:float =  diamondSize;
+	var r:Rect = Rect(Screen.width/2 - w/2, 0,
+			w, h);
+
+	GUILayout.BeginArea(r);
+	GUILayout.BeginHorizontal();
+
+	for (var i:int = 0; i < diamondCount; i++){
+		GUILayout.Label(diamond, GUILayout.MaxWidth(diamondSize), GUILayout.MaxHeight(diamondSize));
+	}
+
+	GUILayout.EndHorizontal();
+	GUILayout.EndArea();
+
+}
+
+
+
+function ActionButtons(){
 	// Button Selection
 
 	var w:float = (buttonSize + padding + buttonLabelWidth) * actions.length;
@@ -101,7 +175,7 @@ function OnGUI () {
 	    Screen.height - padding - buttonSize, //padding,
 	    w,
 	    h + padding);
-	GUILayout.BeginArea(r);//,  GUIStyle("BarFull")); 
+	GUILayout.BeginArea(r);
 	GUILayout.BeginHorizontal();
 
 	for (var i:int = 0;  i < actions.length; i++) {

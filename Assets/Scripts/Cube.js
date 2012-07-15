@@ -52,6 +52,10 @@ public static function SnapPositionToGrid(v:Vector3):Vector3{
 	return Vector3(x,y,z);
 }
 
+public static function GridScale():Vector3{
+	return Vector3(GRID_SIZE_X, GRID_SIZE_Y, GRID_SIZE_Z);
+}
+
 function Start(){
 	renderer.enabled = true;
 	color = renderer.material.color;

@@ -11,9 +11,10 @@ public var availableActionCounts:String = "-1|5|3";
 public var actions:Array = new Array();
 private var actionCounts:Array = new Array();
 
-private var bounds:Bounds;
+public var bounds:Bounds;
 private var cubes:Array;
 private var minions:Array;
+private var items:Array;
 private var isDirty:boolean;
 private var cameraManager:CameraManager;
 
@@ -28,6 +29,9 @@ public static var kActionWater:String = "Water";
 public static var kActionGear:String = "Gear";
 public static var kActionMinion:String = "Minion";
 
+public var diamondCount:int;
+public var telescopeActive:boolean;
+
 enum LevelState{
 	Invalid			= 0,
 	LevelStart		= 1,
@@ -39,6 +43,7 @@ function Awake(){
 	cameraManager = GetComponent(CameraManager);
 	cubes = FindObjectsOfType(Cube);
 	minions = FindObjectsOfType(Minion);
+	items =  FindObjectsOfType(Item);
 
 	log = Instantiate(Resources.Load("Log", GameObject)).GetComponent(GUIText);
 	centerText = Instantiate(Resources.Load("CenterText", GameObject)).GetComponent(GUIText);
@@ -46,7 +51,6 @@ function Awake(){
 	cursor = Instantiate(Resources.Load("Cursor", GameObject)).GetComponent(Cursor);
 
 	ParseActions();
-
 }
 
 function Start () {
@@ -64,6 +68,8 @@ function Start () {
 private var levelComplete:boolean;
 
 function Update () {
+	UpdateItems();
+	
 	if (isDirty){
 		CalculateBoundingBox();
 		isDirty = false;
@@ -72,6 +78,25 @@ function Update () {
 	if (!levelComplete && AllMinionVictory()){
 		levelComplete = true;
 		LevelComplete();
+	}
+}
+
+function UpdateItems(){
+	var telescopeActivated:boolean = telescopeActive;	
+	diamondCount = 0;
+	telescopeActive = false;
+	for (var i:Item in items){
+		if (i.type == ItemType.Diamond && i.isActive){
+			diamondCount++;
+		}
+		if (i.type == ItemType.Telescope && i.isActive){
+			telescopeActive = true;
+		}
+	}
+	if (telescopeActivated && !telescopeActive){
+		print("Telescope is no longer active!");
+
+		cameraManager.ZoomIn();
 	}
 }
 
@@ -729,41 +754,12 @@ function AdjucentCubes(c:Cube):Array{
 }
 
 function CalculateBoundingBox(){
-	var minX:int;
-	var minY:int;
-	var minZ:int;
-	var maxX:int;
-	var maxY:int;
-	var maxZ:int;
-
+	bounds = Bounds(Vector3.zero, Vector3.zero);
+	
 	for (var c:Cube in cubes) {
 		if (c.type == CubeType.None)
 			continue;
-		if (c.x < minX)
-			minX = c.x;
-		if (c.y < minY)
-			minY = c.y;
-		if (c.z < minZ)
-			minZ = c.z;
-		if (c.x > maxX)
-			maxX = c.x;
-		if (c.y > maxY)
-			maxY = c.y;
-		if (c.z > maxZ)
-			maxZ = c.z;
+		bounds.Encapsulate(c.transform.position);
 	};
-
-	bounds.SetMinMax(Vector3(minX, minY, minZ),
-		Vector3(maxX, maxY, maxZ));
-}
-
-
-
-function BoundingBox():Bounds{
-	var b:Bounds = bounds;
-	b.Expand(Vector3(Cube.GRID_SIZE_X,
-		Cube.GRID_SIZE_Y,
-		Cube.GRID_SIZE_Z));
-	return b;
 }
 
