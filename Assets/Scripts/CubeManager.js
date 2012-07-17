@@ -17,6 +17,7 @@ private var minions:Array;
 private var items:Array;
 private var isDirty:boolean;
 private var cameraManager:CameraManager;
+private var inGameGUI:InGameGUI;
 
 private var cursor:Cursor;
 private var log:GUIText;
@@ -41,6 +42,8 @@ enum LevelState{
 
 function Awake(){
 	cameraManager = GetComponent(CameraManager);
+	inGameGUI = GetComponent(InGameGUI);	
+
 	cubes = FindObjectsOfType(Cube);
 	minions = FindObjectsOfType(Minion);
 	items =  FindObjectsOfType(Item);
@@ -63,6 +66,8 @@ function Start () {
 	SetState(LevelState.LevelStart);
 	print("Cube Manager Initiated");
 
+	log.font = inGameGUI.fontSmall;
+	centerText.font = inGameGUI.fontLarge;
 }
 
 private var levelComplete:boolean;

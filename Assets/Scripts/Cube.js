@@ -58,7 +58,6 @@ public static function GridScale():Vector3{
 
 function Start(){
 	renderer.enabled = true;
-	color = renderer.material.color;
 }
 
 function Update () {
@@ -114,6 +113,7 @@ private var destroyTime:float = 0.3;
 function Delete(){
 	isDestroyed = true;
 	timeToStartDestroy = Time.time;
+	color = renderer.material.color;
 	renderer.material.shader = Shader.Find("Transparent/Diffuse");	
 }
 

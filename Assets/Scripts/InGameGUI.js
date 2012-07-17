@@ -14,14 +14,15 @@ private var cameraManager:CameraManager;
 
 private var skin:GUISkin;
 
+public var fontLarge:Font;
+public var fontSmall:Font;
+private var baseFontSize:int = 16;
+private var fontName:String = "MyriadPro-BoldCond";
 
 function Awake(){
 	cubeManager = GetComponent(CubeManager);
 	cameraManager = GetComponent(CameraManager);
-}
 
-function Start(){
-	
 	if (Application.platform == RuntimePlatform.IPhonePlayer){
 	    switch (iPhone.generation){
 	        case iPhoneGeneration.iPhone4:
@@ -42,8 +43,18 @@ function Start(){
 	actionCountPadding *= resolutionRatio;
 
 	actions = cubeManager.actions;	
-	skin = Resources.Load("Skin", GUISkin);
 
+	var fontSmallSize:int = baseFontSize * resolutionRatio;
+	var fontLargeSize:int = fontSmallSize * 2;
+
+	fontSmall = Resources.Load(fontName + fontSmallSize.ToString(), Font);
+	fontLarge = Resources.Load(fontName + fontLargeSize.ToString(), Font);	
+
+}
+
+function Start(){
+	skin = Resources.Load("Skin", GUISkin);
+	skin.font = fontSmall;
 	LoadTextures();
 
 }

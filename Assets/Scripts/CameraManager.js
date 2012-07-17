@@ -38,6 +38,9 @@ function LateUpdate () {
 // 	Automatically zoom to show the whole level
 
 public var UseZoomInCamera:boolean = true;
+private var blendTime:float = 0.5;
+private var startBlendTime:float;
+private var blendInProgress:boolean;
 
 public function ZoomOut(){
 	if (!UseZoomInCamera){
@@ -59,7 +62,6 @@ public function ZoomIn(){
 public static var kInitialAnimationSequence:String = "InitialAnimationSequence";
 
 function InitCamera(){
-	isDirty = true;
 	targetPosition = transform.position;
 	targetRotationY = RotationY;
 
@@ -72,10 +74,17 @@ function InitCamera(){
 }
 
 function UpdateCamera() {
-	if (UseZoomInCamera){		
-		UpdateZoomInCamera();
-	}else{
-		UpdateZoomOutCamera();
+	if (Time.time - startBlendTime > blendTime){
+		blendInProgress = false;
+	}
+
+	UpdateRotation();
+	UpdatePosition();
+	UpdateZoom();
+	if (isDirty){
+		// When Rotating, always keep the current focus
+		SetLookAt(lookAtTarget);		
+		isDirty = false;
 	}
 };
 
@@ -92,24 +101,12 @@ function StopInitCamera(){
 private var numberOfCubesInView:int = 5;
 
 function InitZoomInCamera(){
-	SetLookAt(cubeManager.AvailableMinion().transform.position);
+	LookAt(cubeManager.AvailableMinion().transform.position);
 	var c:Cube = cubeManager.RandomCube();
 	var sizeOfCube:float = c.GetComponent(Renderer).bounds.extents.magnitude;
-	camera.orthographicSize = numberOfCubesInView * sizeOfCube;
+	ZoomTo(numberOfCubesInView * sizeOfCube);
 }
 
-function UpdateZoomInCamera(){
-	UpdateRotation();
-	UpdatePosition();
-	if (isDirty){
-		AlignCameraWithTarget();
-		isDirty = false;
-	}
-}
-
-function AlignCameraWithTarget(){
-	SetLookAt(lookAtTarget);
-}
 
 function InitialAnimationSequence(){
 	var m:Minion = cubeManager.AvailableMinion();
@@ -149,14 +146,6 @@ function InitZoomOutCamera(){
 	AlignCameraWithWorld();
 }
 
-function UpdateZoomOutCamera(){
-	UpdateRotation();
-	UpdatePosition();
-	if (isDirty){
-		AlignCameraWithWorld();
-		isDirty = false;
-	}	
-}
 
 private var rotationTolerance:float = 0.2;
 
@@ -165,7 +154,7 @@ function UpdateRotation(){
 		if (Mathf.Abs(RotationY - targetRotationY) <= rotationTolerance){
 			RotationY = targetRotationY;
 		}else{
-			RotationY = Mathf.Lerp(RotationY, targetRotationY, Time.deltaTime * CameraLerpSpeed);
+			RotationY = Mathf.Lerp(RotationY, targetRotationY, BlendPercentage());
 		}
 		isDirty = true;
 	}
@@ -179,7 +168,19 @@ function UpdatePosition(){
 	if (Mathf.Abs(Vector3.Distance(targetPosition, transform.position)) < positionTolerance){
 		transform.position = targetPosition;
 	}else{
-		transform.position = Vector3.Lerp(transform.position, targetPosition, Time.deltaTime * CameraMoveLerpSpeed);
+		transform.position = Vector3.Lerp(transform.position, targetPosition, BlendPercentage());
+	}
+}
+
+
+private var targetSize:float;
+private var sizeTolerance:float = 0.1;
+
+function UpdateZoom(){
+	if (Mathf.Abs(camera.orthographicSize - targetSize) <= sizeTolerance){
+		camera.orthographicSize = targetSize;
+	}else{
+		camera.orthographicSize = Mathf.Lerp(camera.orthographicSize, targetSize, BlendPercentage());
 	}
 }
 
@@ -193,11 +194,11 @@ function AlignCameraWithWorld(){
 			b.center.y + b.size.y * YOffsetPercentage,
 			b.center.z
 		);
-	SetLookAt(center);
+	LookAt(center);
 
 	// Tweak the OrthorGraphic Size According to Bounding Size
 	var extendsWithBuffer:Vector3 = b.extents * extentBuffer;
-	camera.orthographicSize = extendsWithBuffer.magnitude;
+	ZoomTo(extendsWithBuffer.magnitude);
 }
 
 ///////////////////////////
@@ -210,13 +211,34 @@ function LookAt(target:Vector3){
 	var z:float = target.z - distance * Mathf.Cos(Mathf.Deg2Rad * RotationY);	
 	targetPosition = Vector3(x,y,z);
 	lookAtTarget = target;
+	StartBlending(Time.time, false);
 }
 
 function SetLookAt(target:Vector3){
 	LookAt(target);
-	transform.position = targetPosition;	
+	transform.position = targetPosition;
 }
 
+function ZoomTo(size:float){
+	targetSize = size;
+	// Zoom will always happen at the same time as lookat
+	//StartBlending(Time.time);
+}
+
+function StartBlending(t:float, force:boolean){
+	if (blendInProgress && !force){
+		return;
+	}
+	startBlendTime = t;
+	blendInProgress = true;
+	print("Start Blending @" + t.ToString());
+}
+
+function BlendPercentage():float{
+	var deltaT:float = Time.time - startBlendTime;
+	var value:float = deltaT/blendTime;
+	return Mathf.Clamp01(value * value);
+}
 
 ///////////////////////////
 // Call back from Input
@@ -225,6 +247,7 @@ function SetLookAt(target:Vector3){
 function TurnCamera(degree:float){
 	//RotationY += degree;
 	targetRotationY = targetRotationY + degree;
+	StartBlending(Time.time, true);
 }
 
 
