@@ -137,15 +137,23 @@ function ZoomUI(){
 function RotateButtons(){
 	var rotateButtonSize:float = buttonSize/2;
 
-	GUI.Label(Rect(padding, 
+	var r:Rect = Rect(padding, 
 		Screen.height/2 - rotateButtonSize/2, 
 		rotateButtonSize, 
-		rotateButtonSize), rotateLeft);
+		rotateButtonSize);
 
-	GUI.Label(Rect(Screen.width - rotateButtonSize - padding, 
+	if (GUI.Button(r, rotateLeft)){
+		cameraManager.TurnCamera(-90);
+	}
+
+	r = Rect(Screen.width - rotateButtonSize - padding, 
 		Screen.height/2 - rotateButtonSize/2, 
 		rotateButtonSize, 
-		rotateButtonSize), rotateRight);
+		rotateButtonSize);
+
+	if (GUI.Button(r, rotateRight)){
+		cameraManager.TurnCamera(90);		
+	}
 }
 
 function ScoreUI(){
