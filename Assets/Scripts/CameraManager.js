@@ -41,12 +41,14 @@ public var UseZoomInCamera:boolean = true;
 private var blendTime:float = 0.5;
 private var startBlendTime:float;
 private var blendInProgress:boolean;
+private var zoomInLookAtTarget:Vector3;
 
 public function ZoomOut(){
 	if (!UseZoomInCamera){
 		return;
 	}
 	UseZoomInCamera = false;
+	zoomInLookAtTarget = lookAtTarget;
 	InitCamera();
 }
 
@@ -54,9 +56,11 @@ public function ZoomIn(){
 	if (UseZoomInCamera){
 		return;	
 	}
-
 	UseZoomInCamera = true;
 	InitCamera();
+	if (zoomInLookAtTarget != Vector3.zero){		
+		LookAt(zoomInLookAtTarget);
+	}
 }
 
 public static var kInitialAnimationSequence:String = "InitialAnimationSequence";
@@ -206,17 +210,21 @@ function AlignCameraWithWorld(){
 ///////////////////////////
 
 function LookAt(target:Vector3){
-	var x:float = target.x - distance * Mathf.Sin(Mathf.Deg2Rad * RotationY);
-	var y:float = target.y + distance * Mathf.Sin(Mathf.Deg2Rad * RotationX);	
-	var z:float = target.z - distance * Mathf.Cos(Mathf.Deg2Rad * RotationY);	
-	targetPosition = Vector3(x,y,z);
-	lookAtTarget = target;
+	SetLookAtTarget(target);
 	StartBlending(Time.time, false);
 }
 
 function SetLookAt(target:Vector3){
-	LookAt(target);
+	SetLookAtTarget(target);
 	transform.position = targetPosition;
+}
+
+function SetLookAtTarget(target:Vector3){
+	var x:float = target.x - distance * Mathf.Sin(Mathf.Deg2Rad * RotationY);
+	var y:float = target.y + distance * Mathf.Sin(Mathf.Deg2Rad * RotationX);	
+	var z:float = target.z - distance * Mathf.Cos(Mathf.Deg2Rad * RotationY);	
+	targetPosition = Vector3(x,y,z);
+	lookAtTarget = target;	
 }
 
 function ZoomTo(size:float){
@@ -229,6 +237,7 @@ function StartBlending(t:float, force:boolean){
 	if (blendInProgress && !force){
 		return;
 	}
+
 	startBlendTime = t;
 	blendInProgress = true;
 	print("Start Blending @" + t.ToString());
