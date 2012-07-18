@@ -30,7 +30,7 @@ private static var typeOfCubes:int = 7;
 
 // Need to be called before CubeManager Initialize
 function Awake () {
-	SnapToGrid();
+	SnapXYZToGrid();
 	renderer.enabled = false;
 }
 
@@ -38,7 +38,7 @@ public static var GRID_SIZE_X:float = 10.0;
 public static var GRID_SIZE_Y:float = 5.0;
 public static var GRID_SIZE_Z:float = 10.0;
 
-function SnapToGrid(){
+function SnapXYZToGrid(){
 	x = Mathf.Round(transform.position.x/GRID_SIZE_X);
 	y = Mathf.Round(transform.position.y/GRID_SIZE_Y);	
 	z = Mathf.Round(transform.position.z/GRID_SIZE_Z);	
@@ -57,6 +57,7 @@ public static function GridScale():Vector3{
 }
 
 function Start(){
+	transform.position = Vector3(x * GRID_SIZE_X, y * GRID_SIZE_Y, z * GRID_SIZE_Z);	
 	renderer.enabled = true;
 }
 
