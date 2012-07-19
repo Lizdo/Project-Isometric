@@ -67,7 +67,8 @@ function Start () {
 	print("Cube Manager Initiated");
 
 	log.font = inGameGUI.fontSmall;
-	centerText.font = inGameGUI.fontLarge;
+	centerText.font = inGameGUI.fontLarge;	
+	
 }
 
 private var levelComplete:boolean;

@@ -237,10 +237,8 @@ function StartBlending(t:float, force:boolean){
 	if (blendInProgress && !force){
 		return;
 	}
-
 	startBlendTime = t;
 	blendInProgress = true;
-	print("Start Blending @" + t.ToString());
 }
 
 function BlendPercentage():float{

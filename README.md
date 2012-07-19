@@ -1,6 +1,6 @@
 # Project Isometric
 
-(Current Version: V0.01)
+(Current Version: V0.01, You'll need [Unity3D](http://unity3d.com/unity/download/) & [Blender](http://www.blender.org/download/get-blender/) to run the project.)
 
 My personal isometric block building game. Still work in progress. Project started on July.1 2012.
 
