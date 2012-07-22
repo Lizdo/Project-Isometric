@@ -24,6 +24,7 @@ enum CubeType{
 	Metal,
 	Rock,
 	Gear,
+	Spawner,
 };
 
 private static var typeOfCubes:int = 7;

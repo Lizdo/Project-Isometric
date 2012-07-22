@@ -94,8 +94,7 @@ function UpdateCamera() {
 
 function StopInitCamera(){
 	StopCoroutine(kInitialAnimationSequence);
-	var m:Minion = cubeManager.AvailableMinion();
-	LookAt(m.transform.position);
+	LookAt(cubeManager.InitialCameraTarget());
 }
 
 ///////////////////////////
@@ -105,7 +104,7 @@ function StopInitCamera(){
 private var numberOfCubesInView:int = 5;
 
 function InitZoomInCamera(){
-	LookAt(cubeManager.AvailableMinion().transform.position);
+	LookAt(cubeManager.InitialCameraTarget());
 	var c:Cube = cubeManager.GetRandomCube();
 	var sizeOfCube:float = c.GetComponent(Renderer).bounds.extents.magnitude;
 	ZoomTo(numberOfCubesInView * sizeOfCube);
@@ -113,12 +112,14 @@ function InitZoomInCamera(){
 
 
 function InitialAnimationSequence(){
-	var m:Minion = cubeManager.AvailableMinion();
-	SetLookAt(m.transform.position);
-	yield WaitForSeconds(2);
-	LookAt(m.targetCube.SurfacePosition());
-	yield WaitForSeconds(4);
-	LookAt(m.transform.position);
+	if (cubeManager.type == LevelType.Minion){
+		var m:Minion = cubeManager.AvailableMinion();
+		SetLookAt(m.transform.position);
+		yield WaitForSeconds(2);
+		LookAt(m.targetCube.SurfacePosition());
+		yield WaitForSeconds(4);
+		LookAt(m.transform.position);		
+	}
 }
 
 ///////////////////////////

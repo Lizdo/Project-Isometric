@@ -33,6 +33,14 @@ public static var kActionMinion:String = "Minion";
 public var diamondCount:int;
 public var telescopeActive:boolean;
 
+public var type:LevelType = LevelType.Minion;
+
+enum LevelType{
+	None,
+	Minion,
+	Physics,
+}
+
 enum LevelState{
 	Invalid			= 0,
 	LevelStart		= 1,
@@ -81,7 +89,7 @@ function Update () {
 		isDirty = false;
 	}
 
-	if (!levelComplete && AllMinionVictory()){
+	if (!levelComplete && Victory()){
 		levelComplete = true;
 		LevelComplete();
 	}
@@ -183,12 +191,15 @@ function SetState(s:LevelState){
 	}
 }
 
-function AllMinionVictory():boolean{
-	for (var m:Minion in minions){
-		if (m.state != MinionState.Victory)
-			return false;
+function Victory():boolean{
+	if (type == LevelType.Minion){
+		for (var m:Minion in minions){
+			if (m.state != MinionState.Victory)
+				return false;
+		}
+		return true;		
 	}
-	return true;
+	return false;
 }
 
 function LevelComplete(){
@@ -664,6 +675,31 @@ function PrintPath(a:Array){
 ///////////////////////////
 // Helper functions
 ///////////////////////////
+
+function InitialCameraTarget():Vector3{
+	var target:Vector3;
+	switch (type){
+		case LevelType.Minion:
+			if (AvailableMinion())
+				target = AvailableMinion().transform.position;
+				break;
+		case LevelType.Physics:
+			if (AvailableSpawner())
+				target = AvailableSpawner().SurfacePosition();
+				break;
+	}
+	return target;
+}
+
+
+function AvailableSpawner():Cube{
+	for (var c:Cube in cubes){
+		if (c.type == CubeType.Spawner){
+			return c;
+		}
+	}
+	return null;
+}
 
 function AvailableMinion():Minion{
 	for (var m:Minion in minions){
