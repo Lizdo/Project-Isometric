@@ -58,7 +58,7 @@ function SnapToGrid(){
 }
 
 function FindGear(){
-	var c:Cube = cubeManager.FindCubeAt(x,y,z);
+	var c:Cube = cubeManager.GetCubeAt(x,y,z);
 	if (c && c.type == CubeType.Gear){
 		gear = c;
 	}else{

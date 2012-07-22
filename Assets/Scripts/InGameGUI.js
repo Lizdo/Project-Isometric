@@ -5,7 +5,7 @@ public var resolutionRatio:int = 1;
 
 private var padding:float = 8;
 private var buttonSize:float = 64;
-private var actionCountPadding:float = -10;
+private var GetActionCountPadding:float = -10;
 
 private var buttonLabelWidth:float = 4;
 
@@ -40,7 +40,7 @@ function Awake(){
 	padding *= resolutionRatio;
 	buttonSize *= resolutionRatio;
 	buttonLabelWidth *= resolutionRatio;
-	actionCountPadding *= resolutionRatio;
+	GetActionCountPadding *= resolutionRatio;
 
 	actions = cubeManager.actions;	
 
@@ -201,7 +201,7 @@ function ActionButtons(){
 		var action:String = actions[i];
 		var onTexture:Texture = actionButtonOnTexture[i];
 		var offTexture:Texture = actionButtonOffTexture[i];
-		var available:boolean = cubeManager.ActionAvailable(action);
+		var available:boolean = cubeManager.IsActionAvailable(action);
 		
 		if (cubeManager.currentAction == action && available){
 			if(GUILayout.Button(GUIContent(action, onTexture), GUILayout.MaxWidth(buttonSize), GUILayout.MaxHeight(buttonSize))){
@@ -221,9 +221,9 @@ function ActionButtons(){
 		}
 
 		// Set action count padding to make numbers close to the icon
-		GUI.skin.label.padding.left = actionCountPadding;
+		GUI.skin.label.padding.left = GetActionCountPadding;
 
-		var countDescription:String = cubeManager.ActionCountInString(action);
+		var countDescription:String = cubeManager.GetActionCountInString(action);
 		if (countDescription == "0")
 			GUI.color = ColorWithHex(0x9d3519);
 

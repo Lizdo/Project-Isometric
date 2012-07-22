@@ -224,7 +224,7 @@ function AddCubeOperation(x:int, y:int, z:int, t:CubeType){
 }
 
 function RemoveCubeOperation(x:int, y:int, z:int){
-	var t:CubeType = FindCubeAt(x,y,z).type;
+	var t:CubeType = GetCubeAt(x,y,z).type;
 	var o:Operation = new Operation(OperationType.Remove,
 		x,y,z,t);
 	undoQueue.push(o);
@@ -287,7 +287,7 @@ function AddCubeAt(x:int, y:int, z:int, type:CubeType){
 	cubes.Add(c);
 
 	// TODO: Better data structure
-	ModifyActionCount(currentAction, -1);
+	ModifyGetActionCount(currentAction, -1);
 
 	isDirty = true;
 	cameraManager.isDirty = true;
@@ -306,7 +306,7 @@ function RemoveCubeAt(x:int, y:int, z:int){
 			cubes.RemoveAt(i);
 			c.Delete();
 
-			ModifyActionCount(c.type.ToString(), 1);
+			ModifyGetActionCount(c.type.ToString(), 1);
 			return;
 		}
 	}
@@ -318,8 +318,8 @@ function RemoveCubeAt(x:int, y:int, z:int){
 public var dirtCount:int = 5;
 
 
-function ActionAvailable(action:String):boolean{
-	var i:int = ActionCount(action);
+function IsActionAvailable(action:String):boolean{
+	var i:int = GetActionCount(action);
 	if (i == -1)
 		return true;
 	if (i > 0)
@@ -327,7 +327,7 @@ function ActionAvailable(action:String):boolean{
 	return false;
 }
 
-private function ActionCount(action:String):int{
+private function GetActionCount(action:String):int{
 	for (var i:int = 0; i < actions.length; i++){
 		if (actions[i] == action){
 			return actionCounts[i];
@@ -337,7 +337,7 @@ private function ActionCount(action:String):int{
 	return 0;
 }
 
-private function ModifyActionCount(action:String, amount:int){
+private function ModifyGetActionCount(action:String, amount:int){
 	for (var i:int = 0; i < actions.length; i++){
 		if (actions[i] == action){
 			if (actionCounts[i] == -1){
@@ -355,15 +355,15 @@ private function ModifyActionCount(action:String, amount:int){
 	Debug.LogError("Action not found: " + action);	
 }
 
-function ActionCountInString(action:String):String{
-	var count:int = ActionCount(action);
+function GetActionCountInString(action:String):String{
+	var count:int = GetActionCount(action);
 	if (count == -1)
 		return "∞";
 	return count.ToString();
 }
 
-function CurrentActionAvailable():boolean{
-	if (ActionCount(currentAction)>0 || ActionCount(currentAction) == -1){
+function IsCurrentActionAvailable():boolean{
+	if (GetActionCount(currentAction)>0 || GetActionCount(currentAction) == -1){
 		return true;
 	}
 	return false;
@@ -391,7 +391,7 @@ function CubeTouched(c:Cube, n:Vector3){
 		return;
 	}
 
-	if (FindCubeAt(c.x+n.x, c.y+n.y, c.z+n.z)){
+	if (GetCubeAt(c.x+n.x, c.y+n.y, c.z+n.z)){
 		cursor.Hide();
 		return;
 	}
@@ -401,7 +401,7 @@ function CubeTouched(c:Cube, n:Vector3){
 	cursor.SetXYZ(c.x+n.x, c.y+n.y, c.z+n.z);	
 	cursor.Show();
 
-	if (CurrentActionAvailable())
+	if (IsCurrentActionAvailable())
 		cursor.Enable();
 	else
 		cursor.Disable();
@@ -414,14 +414,14 @@ function CubeReleased(c:Cube){
 	if (!c)
 		return;
 
-	if (!CurrentActionAvailable())
+	if (!IsCurrentActionAvailable())
 		return;
 
-	if (currentAction == kActionDelete && FindCubeAt(cursor.x, cursor.y, cursor.z)){
+	if (currentAction == kActionDelete && GetCubeAt(cursor.x, cursor.y, cursor.z)){
 		RemoveCubeOperation(cursor.x, cursor.y, cursor.z);
 	}
 
-	if (currentAction != kActionDelete && currentAction != "" && !FindCubeAt(cursor.x, cursor.y, cursor.z)){
+	if (currentAction != kActionDelete && currentAction != "" && !GetCubeAt(cursor.x, cursor.y, cursor.z)){
 		AddCubeOperation(cursor.x, cursor.y, cursor.z, Cube.TypeWithString(currentAction));	
 	}
 	
@@ -437,7 +437,7 @@ private var AvailableList:Array;
 
 
 function PathfindGreed(start:Cube, end:Cube):Cube{
-	var a:Array = AdjucentCubes(start);
+	var a:Array = GetAdjucentCubes(start);
 	a.Push(start);
 	var distance:float = 1000;
 	var nextCube:Cube;
@@ -485,11 +485,11 @@ function PathfindAStar(start:Cube, end:Cube):Cube{
 
 		
 		//c) For each of the 4 squares adjacent to this current square …
-		var adjucentCubes:Array = AdjucentCubes(currentCube);
-		for (var c:Cube in adjucentCubes){
+		var GetAdjucentCubes:Array = GetAdjucentCubes(currentCube);
+		for (var c:Cube in GetAdjucentCubes){
 
 			// If it is not walkable or if it is on the closed list, ignore it. 
-			if (!Available(c))
+			if (!IsAvailable(c))
 				continue;
 
 			if (ObjectInArray(c, ClosedList))
@@ -601,7 +601,7 @@ function Log(s:String){
 function AvailableCubeWithSameHeight(startCube:Cube):Array{
 	var a:Array = new Array();
 	for (var c:Cube in cubes){
-		if (c.y == startCube.y && Available(c)){
+		if (c.y == startCube.y && IsAvailable(c)){
 			a.push(c);
 		}
 	}
@@ -673,12 +673,12 @@ function AvailableMinion():Minion{
 	return null;
 }
 
-function RandomCube():Cube{
+function GetRandomCube():Cube{
 	return cubes[0];
 }
 
 // Find cube with id x, y, z
-function FindCubeAt(x:int, y:int, z:int):Cube{
+function GetCubeAt(x:int, y:int, z:int):Cube{
 	for (var c:Cube in cubes) {
 		if (c.type == CubeType.None)
 			continue;
@@ -690,12 +690,12 @@ function FindCubeAt(x:int, y:int, z:int):Cube{
 }
 
 
-function ClearCubeAbove(c:Cube):Cube{
+function GetClearGetCubeAbove(c:Cube):Cube{
 	while (1){
-		var cubeAbove:Cube = CubeAbove(c);
-		if (cubeAbove == null)
+		var GetCubeAbove:Cube = GetCubeAbove(c);
+		if (GetCubeAbove == null)
 			return c;
-		c = cubeAbove;
+		c = GetCubeAbove;
 	}
 	print("Should Never Go Here");
 	return null;
@@ -703,39 +703,39 @@ function ClearCubeAbove(c:Cube):Cube{
 
 private var MAX_STEP_Y = 100;
 
-function ClearCubeBelow(c:Cube):Cube{
+function ClearGetCubeBelow(c:Cube):Cube{
 	for (var i:int = 1; i < MAX_STEP_Y; i++){
-		var cubeBelow:Cube = FindCubeAt(c.x, c.y-i, c.z);
-		if(cubeBelow)
-			return cubeBelow;
+		var GetCubeBelow:Cube = GetCubeAt(c.x, c.y-i, c.z);
+		if(GetCubeBelow)
+			return GetCubeBelow;
 	}
 	return null;
 }
 
-function CubeAbove(c:Cube):Cube{
-	return FindCubeAt(c.x, c.y+1, c.z);
+function GetCubeAbove(c:Cube):Cube{
+	return GetCubeAt(c.x, c.y+1, c.z);
 }
 
-function CubeBelow(c:Cube):Cube{
-	return FindCubeAt(c.x, c.y-1, c.z);
+function GetCubeBelow(c:Cube):Cube{
+	return GetCubeAt(c.x, c.y-1, c.z);
 }
 
 
 // Find cube at real world position p
-function FindCubeAtPosition(p:Vector3):Cube{
+function GetCubeAtPosition(p:Vector3):Cube{
 	var v:Vector3 = Cube.SnapPositionToGrid(p);
-	return FindCubeAt(Mathf.Floor(v.x), Mathf.Floor(v.y), Mathf.Floor(v.z));
+	return GetCubeAt(Mathf.Floor(v.x), Mathf.Floor(v.y), Mathf.Floor(v.z));
 }
 
-function Available(c:Cube):boolean{
+function IsAvailable(c:Cube):boolean{
 	if (!c.CanPass())
 		return false;
-	if (CubeAbove(c))
+	if (GetCubeAbove(c))
 		return false;
 	return true;
 }
 
-function AdjucentCubes(c:Cube):Array{
+function GetAdjucentCubes(c:Cube):Array{
 	if (!c)
 		return null;
 
@@ -748,10 +748,10 @@ function AdjucentCubes(c:Cube):Array{
 	];
 
 	for (var i:int = 0; i <4 ; i++){
-		var neighbour:Cube = FindCubeAt(c.x + offset[i][0],
+		var neighbour:Cube = GetCubeAt(c.x + offset[i][0],
 			c.y + offset[i][1],
 			c.z + offset[i][2]);
-		if (neighbour && Available(neighbour)){
+		if (neighbour && IsAvailable(neighbour)){
 			a.push(neighbour);
 		}
 	}

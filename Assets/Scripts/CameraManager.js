@@ -38,7 +38,7 @@ function LateUpdate () {
 // 	Automatically zoom to show the whole level
 
 public var UseZoomInCamera:boolean = true;
-private var blendTime:float = 0.5;
+private var blendTime:float = 1;
 private var startBlendTime:float;
 private var blendInProgress:boolean;
 private var zoomInLookAtTarget:Vector3;
@@ -106,7 +106,7 @@ private var numberOfCubesInView:int = 5;
 
 function InitZoomInCamera(){
 	LookAt(cubeManager.AvailableMinion().transform.position);
-	var c:Cube = cubeManager.RandomCube();
+	var c:Cube = cubeManager.GetRandomCube();
 	var sizeOfCube:float = c.GetComponent(Renderer).bounds.extents.magnitude;
 	ZoomTo(numberOfCubesInView * sizeOfCube);
 }
@@ -243,8 +243,10 @@ function StartBlending(t:float, force:boolean){
 
 function BlendPercentage():float{
 	var deltaT:float = Time.time - startBlendTime;
-	var value:float = deltaT/blendTime;
-	return Mathf.Clamp01(value * value);
+	var x:float = deltaT/blendTime;
+	// Ease In Ease Out
+	x = Mathf.SmoothStep(0,1,x);
+	return Mathf.Clamp01(x);
 }
 
 ///////////////////////////

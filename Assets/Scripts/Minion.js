@@ -57,7 +57,7 @@ function InitializeCurrentCube(){
 		var v:Vector3 = Vector3(transform.position.x, 
 			transform.position.y - Cube.GRID_SIZE_Y/2, 
 			transform.position.z);
-		currentCube = cubeManager.FindCubeAtPosition(v);		
+		currentCube = cubeManager.GetCubeAtPosition(v);		
 	}
 	if (!initialCube){
 		initialCube = currentCube;
@@ -97,7 +97,7 @@ function UpdateNextCube () {
 		nextCube = currentCube;
 	}
 
-	if (!cubeManager.Available(nextCube)){
+	if (!cubeManager.IsAvailable(nextCube)){
 		nextCube = currentCube;
 	}
 
@@ -126,11 +126,11 @@ function UpdatePosition(){
 
 function SnapToCubeSurface(){
 	if (currentCube.isDestroyed){
-		currentCube = cubeManager.ClearCubeBelow(currentCube);
+		currentCube = cubeManager.ClearGetCubeBelow(currentCube);
 		needRecalculatePathfinding = true;
 	}else{
 		// Snap to the grid surface if over the sky
-		currentCube = cubeManager.ClearCubeAbove(currentCube);
+		currentCube = cubeManager.GetClearGetCubeAbove(currentCube);
 	}
 
 	if(!currentCube){
