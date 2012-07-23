@@ -1,4 +1,5 @@
 #pragma strict
+import Helper;
 
 public var isDirty:boolean;
 
@@ -293,7 +294,6 @@ function UpdateInput(){
 	    if (touches.length < 1)
 	        return;
 	    var touch:Touch = ClosestTouchPointFromLast(touches);
-	    lastTouchPoint = touch.position;
 	    if(touch.phase == TouchPhase.Began){
 	        TouchBeganAt(touch.position);
 	    }else if(touch.phase == TouchPhase.Moved
@@ -302,6 +302,8 @@ function UpdateInput(){
 	    }else if(touch.phase == TouchPhase.Ended){
 	        TouchEndedAt(touch.position);
 	    }
+	    // Set last touchpoint only after all the touches are processed
+	    lastTouchPoint = touch.position;
 	}else{
 	    if(Input.GetMouseButtonDown(0)){
 	        TouchBeganAt(Input.mousePosition);
@@ -342,7 +344,10 @@ function TouchBeganAt(p:Vector2){
 		return;
 
 	touchStartPoint = p;
+	lastCubePoint = Vector2.zero;
 	cameraPanning = false;
+
+	PRINT_IOS("Touch Started At" + p.ToString());		
 
 	if (UseZoomInCamera){
 		startPointIn3D = RaycastHitForCameraPanning(p);
@@ -357,6 +362,8 @@ function TouchBeganAt(p:Vector2){
 	var normal:Vector3 = hit.normal;
 
 	cubeManager.CubeTouched(c, normal);
+
+
 }
 
 public var hit : RaycastHit;
@@ -381,8 +388,13 @@ function TouchMovedAt(p:Vector2){
 
 	hit = RaycastHitForPoint(CompensatedTouchPoint(p));
 
-	if (hit.collider == null)
+	if (hit.collider == null){
+		PRINT_IOS("Touch Moved, No Cube At" + p.ToString());		
 		return;
+	}
+
+	PRINT_IOS("Touch Moved, Cube Found At" + p.ToString());		
+	lastCubePoint = p;
 
 	var c:Cube = hit.collider.GetComponent(Cube);
 	var normal:Vector3 = hit.normal;
@@ -391,6 +403,8 @@ function TouchMovedAt(p:Vector2){
 }
 
 private static var BorderPercentageToTriggerCameraRotation:float = 0.2;
+private var lastCubePoint:Vector2;
+private var 
 
 function TouchEndedAt(p:Vector2){
 	if (cubeManager.state == LevelState.LevelStart){
@@ -405,11 +419,21 @@ function TouchEndedAt(p:Vector2){
 	// Release Cube Cursor
 	hit = RaycastHitForPoint(CompensatedTouchPoint(p));
 
+	if (Application.platform == RuntimePlatform.IPhonePlayer && hit.collider == null && Vector2.Distance(p, lastCubePoint) <  cameraMovementTolerance * inGameGUI.resolutionRatio){
+		// Fetch last touched point here, on iOS very often the finger slips when we do TouchEndedAt();
+		p = lastCubePoint;
+		hit = RaycastHitForPoint(CompensatedTouchPoint(p));
+
+		PRINT_IOS("Touch Ended, Retry with Last Point:" + p.ToString());
+	}
+
 	if (hit.collider == null){
 		cubeManager.CubeReleased(null);
+		PRINT_IOS("Touch Ended, No Cube At:" + p.ToString());
 	}else{
 		var c:Cube = hit.collider.GetComponent(Cube);
 		cubeManager.CubeReleased(c);
+		PRINT_IOS("Touch Ended, Cube Found At" + p.ToString());		
 		return;
 	}
 

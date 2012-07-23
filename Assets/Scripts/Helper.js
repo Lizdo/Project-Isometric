@@ -1,5 +1,21 @@
 #pragma strict
 
+
+///////////////////////////
+// Debug Helper Functions
+///////////////////////////
+
+static function PRINT_IOS(s:String){
+    if (Application.platform == RuntimePlatform.IPhonePlayer){
+        print(s);
+    }
+}
+
+
+///////////////////////////
+// Color Helper Functions
+///////////////////////////
+
 static function ColorWithHex(hex:int):Color{
     // 0xRRGGBB
     var r:float = ((hex & 0xFF0000) >> 16)/255.0;
@@ -59,7 +75,6 @@ static function ColorWithHSL(h:float, s:float, l:float):Color{
 	r = T[0];
 	g = T[1];
 	b = T[2];  
-	return Color(r,g,b,1.0);    
+	return Color(r,g,b,1.0);
+}
 
-  
-}  
