@@ -404,7 +404,6 @@ function TouchMovedAt(p:Vector2){
 
 private static var BorderPercentageToTriggerCameraRotation:float = 0.2;
 private var lastCubePoint:Vector2;
-private var 
 
 function TouchEndedAt(p:Vector2){
 	if (cubeManager.state == LevelState.LevelStart){
