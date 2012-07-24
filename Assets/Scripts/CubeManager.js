@@ -29,6 +29,7 @@ public static var kActionDirt:String = "Dirt";
 public static var kActionWater:String = "Water";
 public static var kActionGear:String = "Gear";
 public static var kActionMinion:String = "Minion";
+public static var kActionElectricity:String = "Electricity";
 
 public var diamondCount:int;
 public var telescopeActive:boolean;
@@ -39,6 +40,7 @@ enum LevelType{
 	None,
 	Minion,
 	Physics,
+	Build,
 }
 
 enum LevelState{
@@ -76,6 +78,8 @@ function Start () {
 
 	log.font = inGameGUI.fontSmall;
 	centerText.font = inGameGUI.fontLarge;	
+
+	unpoweredMaterial = Resources.Load("Unpowered", Material);
 	
 }
 
@@ -83,6 +87,10 @@ private var levelComplete:boolean;
 
 function Update () {
 	UpdateItems();
+
+	if (type == LevelType.Build){
+		UpdateBuild();
+	}
 	
 	if (isDirty){
 		CalculateBoundingBox();
@@ -94,6 +102,8 @@ function Update () {
 		LevelComplete();
 	}
 }
+
+
 
 function UpdateItems(){
 	var telescopeActivated:boolean = telescopeActive;	
@@ -156,7 +166,8 @@ function IsActionValid(action:String):boolean{
 		kActionDelete,
 		kActionDirt,
 		kActionMinion,
-		kActionWater
+		kActionWater,
+		kActionElectricity
 		);
 
 	for (var s:String in validActions){
@@ -209,13 +220,59 @@ function LevelComplete(){
 	LoadNextlevel();	
 }
 
-private var MaxLevelID:int = 3;
+private var MaxLevelID:int = 0;
 
 function LoadNextlevel(){
 	var index:int = Application.loadedLevel + 1;
 	if (index > MaxLevelID)
 		index = 0;
 	Application.LoadLevel(index);
+}
+
+
+///////////////////////////
+// BUILD Gameplay
+///////////////////////////
+
+private var unpoweredMaterial:Material;
+
+public function UnpoweredMaterial():Material{
+	return unpoweredMaterial;
+}
+
+
+private var cores:Array;
+
+function UpdateBuild(){
+	// Clean Up
+	cores = new Array();
+
+	for (var c:Cube in cubes){
+		if (c.type == CubeType.Core){
+			cores.Add(c);
+		}else{
+			c.isPowered = false;
+		}
+	}
+
+	for (var core:Cube in cores){
+		CalculateCoreSize(core);
+		for (var c:Cube in cubes){
+			if (Distance(core,c) <= core.PowerRadius()){
+				c.isPowered = true;
+			}
+		}
+	}
+}
+
+function CalculateCoreSize(c:Cube){
+	ASSERT(c.type == CubeType.Core, "Only Cores get calculated.");
+	c.size = 1;
+}
+
+
+function Distance(c1:Cube, c2:Cube):float{
+	return Vector3.Distance(Vector3(c1.x,c1.y,c1.z), Vector3(c2.x,c2.y,c2.z));
 }
 
 ///////////////////////////
@@ -298,7 +355,7 @@ function AddCubeAt(x:int, y:int, z:int, type:CubeType){
 	cubes.Add(c);
 
 	// TODO: Better data structure
-	ModifyGetActionCount(currentAction, -1);
+	ModifyActionCount(currentAction, -1);
 
 	isDirty = true;
 	cameraManager.isDirty = true;
@@ -317,16 +374,15 @@ function RemoveCubeAt(x:int, y:int, z:int){
 			cubes.RemoveAt(i);
 			c.Delete();
 
-			ModifyGetActionCount(c.type.ToString(), 1);
+			// Update Resource Count
+			if (c.resourceType != ResourceType.None){
+				ModifyActionCount(c.resourceType.ToString(), 1);
+			}
+
 			return;
 		}
 	}
 }
-
-
-
-// -1 = infinite
-public var dirtCount:int = 5;
 
 
 function IsActionAvailable(action:String):boolean{
@@ -348,7 +404,7 @@ private function GetActionCount(action:String):int{
 	return 0;
 }
 
-private function ModifyGetActionCount(action:String, amount:int){
+private function ModifyActionCount(action:String, amount:int){
 	for (var i:int = 0; i < actions.length; i++){
 		if (actions[i] == action){
 			if (actionCounts[i] == -1){
@@ -407,6 +463,8 @@ function CubeTouched(c:Cube, n:Vector3){
 		return;
 	}
 
+	if (!IsAdjucentCubesPowered(c.x+n.x, c.y+n.y, c.z+n.z))
+		return;
 
 	// Add Cube
 	cursor.SetXYZ(c.x+n.x, c.y+n.y, c.z+n.z);	
@@ -416,6 +474,16 @@ function CubeTouched(c:Cube, n:Vector3){
 		cursor.Enable();
 	else
 		cursor.Disable();
+
+}
+
+function IsAdjucentCubesPowered(x:int, y:int, z:int){
+	var adjucentCubes:Array = GetAdjucentCubes(x,y,z);
+	for (var c:Cube in adjucentCubes){
+		if (c.isPowered)
+			return true;
+	}
+	return false;
 
 }
 
@@ -432,10 +500,21 @@ function CubeReleased(c:Cube){
 		RemoveCubeOperation(cursor.x, cursor.y, cursor.z);
 	}
 
-	if (currentAction != kActionDelete && currentAction != "" && !GetCubeAt(cursor.x, cursor.y, cursor.z)){
-		AddCubeOperation(cursor.x, cursor.y, cursor.z, Cube.TypeWithString(currentAction));	
+	if (currentAction != kActionDelete && currentAction != ""){
+		if (GetCubeAt(cursor.x, cursor.y, cursor.z))
+			return;
+
+		if (!IsAdjucentCubesPowered(cursor.x, cursor.y, cursor.z))
+			return;
+
+		AddCubeOperationWithResourceType(cursor.x, cursor.y, cursor.z, Cube.ResourceTypeWithString(currentAction));	
 	}
 	
+}
+
+// TODO: Add different cubes
+function AddCubeOperationWithResourceType(x:int, y:int, z:int, t:ResourceType){
+	AddCubeOperation(x, y, z, Cube.TypeWithString(t.ToString()));	
 }
 
 ///////////////////////////
@@ -448,7 +527,7 @@ private var AvailableList:Array;
 
 
 function PathfindGreed(start:Cube, end:Cube):Cube{
-	var a:Array = GetAdjucentCubes(start);
+	var a:Array = GetAdjucentPassableCubes(start);
 	a.Push(start);
 	var distance:float = 1000;
 	var nextCube:Cube;
@@ -496,7 +575,7 @@ function PathfindAStar(start:Cube, end:Cube):Cube{
 
 		
 		//c) For each of the 4 squares adjacent to this current square …
-		var GetAdjucentCubes:Array = GetAdjucentCubes(currentCube);
+		var GetAdjucentCubes:Array = GetAdjucentPassableCubes(currentCube);
 		for (var c:Cube in GetAdjucentCubes){
 
 			// If it is not walkable or if it is on the closed list, ignore it. 
@@ -771,7 +850,30 @@ function IsAvailable(c:Cube):boolean{
 	return true;
 }
 
-function GetAdjucentCubes(c:Cube):Array{
+function GetAdjucentCubes(x:int,y:int,z:int):Array{
+	var a:Array = new Array();
+	var offset = [
+		[-1,0,0],
+		[1,0,0],
+		[0,0,-1],
+		[0,0,1],
+		[0,1,0],
+		[0,-1,0]
+	];
+
+	for (var i:int = 0; i < offset.length ; i++){
+		var neighbour:Cube = GetCubeAt(x + offset[i][0],
+			y + offset[i][1],
+			z + offset[i][2]);
+		if (neighbour){
+			a.push(neighbour);
+		}
+	}
+
+	return a;
+}
+
+function GetAdjucentPassableCubes(c:Cube):Array{
 	if (!c)
 		return null;
 

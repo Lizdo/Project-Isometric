@@ -11,6 +11,12 @@ static function PRINT_IOS(s:String){
     }
 }
 
+static function ASSERT(b:boolean, s:String){
+    if (!b){
+        Debug.LogError(s);
+    }
+}
+
 
 ///////////////////////////
 // Color Helper Functions
