@@ -248,27 +248,67 @@ function UpdateBuild(){
 	cores = new Array();
 
 	for (var c:Cube in cubes){
-		if (c.type == CubeType.Core){
+		if (c.type == CubeType.Core && c.isPowered){
 			cores.Add(c);
 		}else{
 			c.isPowered = false;
 		}
 	}
 
-	for (var core:Cube in cores){
+	for (var core:CubeCore in cores){
 		CalculateCoreSize(core);
+
+		// Every thing in power radius is powered
 		for (var c:Cube in cubes){
 			if (Distance(core,c) <= core.PowerRadius()){
 				c.isPowered = true;
 			}
 		}
+
+		// If connected with cube with the same power cube, also powered
+		for (var c:Cube in cubes){
+			
+		}
+
 	}
 }
 
-function CalculateCoreSize(c:Cube){
+
+function CalculateCoreSize(c:CubeCore){
 	ASSERT(c.type == CubeType.Core, "Only Cores get calculated.");
+
+	var maxStep:int = 9;
+	var poweredCubes:Array = new Array(c);
+	var newCubes:Array;
 	c.size = 1;
+
+	//Go Up/Left/Right/Front/Back
+	var offset = [
+		[-1,0,0],
+		[1,0,0],
+		[0,0,-1],
+		[0,0,1],
+		[0,1,0]
+	];
+
+	for (var j:int = 0; j < maxStep; j++){
+		newCubes = new Array();
+		for (var powerCube:Cube in poweredCubes){
+			for (var i:int = 0; i < offset.length ; i++){
+				var neighbour:Cube = GetCubeAt(powerCube.x + offset[i][0],
+					powerCube.y + offset[i][1],
+					powerCube.z + offset[i][2]);
+				if (!neighbour || neighbour.resourceType != c.resourceType){
+					return;
+				}
+				newCubes.push(neighbour);
+			}
+		}
+		c.size++;
+		poweredCubes = poweredCubes.Concat(newCubes);
+	}
 }
+
 
 
 function Distance(c1:Cube, c2:Cube):float{

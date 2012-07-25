@@ -19,6 +19,19 @@ static function ASSERT(b:boolean, s:String){
 
 
 ///////////////////////////
+// Color Definitions
+///////////////////////////
+
+static function ColorForResourceType(t:ResourceType){
+    var c:Color = Color.white;
+    switch (t){
+        case ResourceType.Electricity:
+            c = ColorWithHexAndAlpha(0xede75a, 0.5);
+    }
+    return c;
+}
+
+///////////////////////////
 // Color Helper Functions
 ///////////////////////////
 
@@ -28,6 +41,11 @@ static function ColorWithHex(hex:int):Color{
     var g:float = ((hex & 0xFF00) >> 8)/255.0;
     var b:float = (hex & 0xFF)/255.0;
     return Color(r,g,b,1.0);
+}
+
+static function ColorWithHexAndAlpha(hex:int, alpha:float):Color{
+    var c:Color = ColorWithHex(hex);
+    return Color(c.r,c.g,c.b,alpha);
 }
 
 static var s:float = 0.15;

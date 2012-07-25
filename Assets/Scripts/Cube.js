@@ -1,5 +1,10 @@
 #pragma strict
 
+
+///////////////////////////
+// Properties
+///////////////////////////
+
 public var x:int;
 public var y:int;
 public var z:int;
@@ -13,14 +18,14 @@ public var isDestroyed:boolean;
 // Un powered cube cannot be interacted
 public var isPowered:boolean;
 
+// Will bring power to adjucent blocks if isPowered
+public var isPowerSource:boolean;
+
 // If the player can use the delete this cube
 public var isDeletable:boolean;
 
 // If minion can walk on it
 public var isPassable:boolean;
-
-// Calculated
-public var size:int;
 
 // Used by pathfinding
 public var F:float;
@@ -49,7 +54,6 @@ enum CubeType{
 	// New Build System
 	Spark,
 	Electricity,
-	Wire,
 	Core,
 
 };
@@ -70,7 +74,11 @@ enum ResourceType{
 	Plant,
 }
 
-private static var typeOfCubes:int = 7;
+
+
+///////////////////////////
+// Run Loop
+///////////////////////////
 
 // Need to be called before CubeManager Initialize
 function Awake () {
@@ -78,6 +86,77 @@ function Awake () {
 	renderer.enabled = false;
 	cubeManager = FindObjectOfType(CubeManager);
 }
+
+
+function Start(){
+	transform.position = Vector3(x * GRID_SIZE_X, y * GRID_SIZE_Y, z * GRID_SIZE_Z);	
+	renderer.enabled = true;
+	initialMaterial = renderer.material;
+}
+
+function Update () {
+	transform.position = Vector3(x * GRID_SIZE_X, y * GRID_SIZE_Y, z * GRID_SIZE_Z);
+	if (isDestroyed){
+		var targetColor:Color = Color(color.r, color.g, color.b, 0);
+		var t:float = (Time.time - timeToStartDestroy)/destroyTime;
+		renderer.material.color = Color.Lerp(color, targetColor, t);
+		if (t >= 1){
+			//renderer.enabled = false;
+			Destroy(gameObject);			
+		}
+	}
+
+	if (cubeManager.type == LevelType.Build){
+		UpdateBuild();
+	}
+}
+
+function LateUpdate(){
+	if (!isPowered){
+		renderer.material = cubeManager.UnpoweredMaterial();
+	}else{
+		renderer.material = initialMaterial;
+	}
+}
+
+function CanDelete():boolean{
+	return isDeletable;
+}
+
+function CanPass():boolean{
+	return isPassable;
+}
+
+private var timeToStartDestroy:float;
+private var destroyTime:float = 0.3;
+
+function Delete(){
+	isDestroyed = true;
+	timeToStartDestroy = Time.time;
+	color = renderer.material.color;
+	renderer.material.shader = Shader.Find("Transparent/Diffuse");	
+}
+
+
+
+///////////////////////////
+// Build Functions
+///////////////////////////
+
+function UpdateBuild(){
+	if (isPowered && isPowerSource){
+		var adjucentCubes:Array = cubeManager.GetAdjucentCubes(x,y,z);
+		for (var c:Cube in adjucentCubes){
+			c.isPowered = true;
+		}
+	}
+}
+
+
+
+///////////////////////////
+// Snapping to Grid
+///////////////////////////
 
 public static var GRID_SIZE_X:float = 10.0;
 public static var GRID_SIZE_Y:float = 5.0;
@@ -101,48 +180,18 @@ public static function GridScale():Vector3{
 	return Vector3(GRID_SIZE_X, GRID_SIZE_Y, GRID_SIZE_Z);
 }
 
-function Start(){
-	transform.position = Vector3(x * GRID_SIZE_X, y * GRID_SIZE_Y, z * GRID_SIZE_Z);	
-	renderer.enabled = true;
-	initialMaterial = renderer.material;
-}
-
-function Update () {
-	transform.position = Vector3(x * GRID_SIZE_X, y * GRID_SIZE_Y, z * GRID_SIZE_Z);
-
-	if (cubeManager.type == LevelType.Build){
-		UpdateBuild();
-	}
-
-	if (isDestroyed){
-		var targetColor:Color = Color(color.r, color.g, color.b, 0);
-		var t:float = (Time.time - timeToStartDestroy)/destroyTime;
-		renderer.material.color = Color.Lerp(color, targetColor, t);
-		if (t >= 1){
-			//renderer.enabled = false;
-			Destroy(gameObject);			
-		}
-	}
-}
-
-function UpdateBuild(){
-	if (!isPowered){
-		renderer.material = cubeManager.UnpoweredMaterial();
-	}else{
-		renderer.material = initialMaterial;
-	}
-}
-
-function PowerRadius(){
-	return Mathf.Pow(size+1, 2);
-}
-
 function SetXYZ(newx:int, newy:int, newz:int){
 	x = newx;
 	y = newy;
 	z = newz;
 	transform.position = Vector3(x * GRID_SIZE_X, y * GRID_SIZE_Y, z * GRID_SIZE_Z);
 }
+
+
+
+///////////////////////////
+// Helpers
+///////////////////////////
 
 function Hide(){
 	renderer.enabled = false;
@@ -159,26 +208,6 @@ function SurfaceY():float{
 function SurfacePosition():Vector3{
 	return Vector3(transform.position.x, SurfaceY(), transform.position.z);
 }
-
-
-function CanDelete():boolean{
-	return isDeletable;
-}
-
-function CanPass():boolean{
-	return isPassable;
-}
-
-private var timeToStartDestroy:float;
-private var destroyTime:float = 0.3;
-
-function Delete(){
-	isDestroyed = true;
-	timeToStartDestroy = Time.time;
-	color = renderer.material.color;
-	renderer.material.shader = Shader.Find("Transparent/Diffuse");	
-}
-
 
 private var distanceYPenalty:float = 5;
 private var distanceXPenalty:float = 1.0001;
