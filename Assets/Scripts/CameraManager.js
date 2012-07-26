@@ -418,7 +418,9 @@ function TouchEndedAt(p:Vector2){
 	// Release Cube Cursor
 	hit = RaycastHitForPoint(CompensatedTouchPoint(p));
 
-	if (Application.platform == RuntimePlatform.IPhonePlayer && hit.collider == null && Vector2.Distance(p, lastCubePoint) <  cameraMovementTolerance * inGameGUI.resolutionRatio){
+	if (Application.platform == RuntimePlatform.IPhonePlayer 
+		&& hit.collider == null 
+		&& Vector2.Distance(p, lastCubePoint) <  cameraMovementTolerance * inGameGUI.resolutionRatio){
 		// Fetch last touched point here, on iOS very often the finger slips when we do TouchEndedAt();
 		p = lastCubePoint;
 		hit = RaycastHitForPoint(CompensatedTouchPoint(p));

@@ -91,7 +91,7 @@ function Awake () {
 function Start(){
 	transform.position = Vector3(x * GRID_SIZE_X, y * GRID_SIZE_Y, z * GRID_SIZE_Z);	
 	renderer.enabled = true;
-	initialMaterial = renderer.material;
+	initialMaterial = renderer.sharedMaterial;
 }
 
 function Update () {
@@ -112,6 +112,7 @@ function Update () {
 }
 
 function LateUpdate(){
+	// Update visual after all the update is done.
 	if (!isPowered){
 		renderer.material = cubeManager.UnpoweredMaterial();
 	}else{
@@ -120,6 +121,8 @@ function LateUpdate(){
 }
 
 function CanDelete():boolean{
+	if (!isPowered)
+		return false;
 	return isDeletable;
 }
 
@@ -147,7 +150,11 @@ function UpdateBuild(){
 	if (isPowered && isPowerSource){
 		var adjucentCubes:Array = cubeManager.GetAdjucentCubes(x,y,z);
 		for (var c:Cube in adjucentCubes){
-			c.isPowered = true;
+			if (c.isPowered == false){
+				// Propagate Power
+				c.isPowered = true;
+				c.UpdateBuild();
+			}
 		}
 	}
 }

@@ -536,8 +536,11 @@ function CubeReleased(c:Cube){
 	if (!IsCurrentActionAvailable())
 		return;
 
-	if (currentAction == kActionDelete && GetCubeAt(cursor.x, cursor.y, cursor.z)){
-		RemoveCubeOperation(cursor.x, cursor.y, cursor.z);
+	if (currentAction == kActionDelete){
+		if (c.CanDelete()){
+			RemoveCubeOperation(cursor.x, cursor.y, cursor.z);
+		}
+		return;
 	}
 
 	if (currentAction != kActionDelete && currentAction != ""){
