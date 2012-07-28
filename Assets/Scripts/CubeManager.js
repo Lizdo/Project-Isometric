@@ -108,8 +108,13 @@ function Update () {
 function GenerateLevel(){
 	var electricityPercentage:float = 0.1;
 	LevelGenerator.SetSeed(Mathf.Floor(Random.value*10000));
+
+	// Iterate on a size * size, then check if it's within radius size
 	for (var x:int = -randomGenerationLevelSize; x < randomGenerationLevelSize; x++){
 		for (var z:int = -randomGenerationLevelSize; z < randomGenerationLevelSize; z++){
+			if (Vector2.Distance(Vector2(x,z), Vector2.zero) > randomGenerationLevelSize)
+				continue;
+
 			var maxHeight:int = LevelGenerator.Height(x,z);
 			if (maxHeight < 0){
 				continue;
