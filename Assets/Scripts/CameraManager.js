@@ -232,7 +232,7 @@ function SetLookAtTarget(target:Vector3){
 function ZoomTo(size:float){
 	targetSize = size;
 	// Zoom will always happen at the same time as lookat
-	//StartBlending(Time.time);
+	StartBlending(Time.time, true);
 }
 
 function StartBlending(t:float, force:boolean){
