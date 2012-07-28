@@ -92,6 +92,10 @@ function Start(){
 	transform.position = Vector3(x * GRID_SIZE_X, y * GRID_SIZE_Y, z * GRID_SIZE_Z);	
 	renderer.enabled = true;
 	initialMaterial = renderer.sharedMaterial;
+
+	if (cubeManager.type != LevelType.Build){
+		isPowered = true;
+	}
 }
 
 function Update () {
@@ -112,6 +116,9 @@ function Update () {
 }
 
 function LateUpdate(){
+	if (cubeManager.type != LevelType.Build)
+		return;
+
 	// Update visual after all the update is done.
 	if (!isPowered){
 		renderer.material = cubeManager.UnpoweredMaterial();
@@ -212,16 +219,33 @@ function SurfaceY():float{
 	return transform.position.y + GRID_SIZE_Y/2;
 }
 
+function BottomY():float{
+	return transform.position.y - GRID_SIZE_Y/2;
+}
+
 function SurfacePosition():Vector3{
 	return Vector3(transform.position.x, SurfaceY(), transform.position.z);
+}
+
+function BottomPosition():Vector3{
+	return Vector3(transform.position.x, BottomY(), transform.position.z);
 }
 
 private var distanceYPenalty:float = 5;
 private var distanceXPenalty:float = 1.0001;
 
-function Distance(c:Cube):float{
-	// Manhattan Distance
+function PathfindingDistance(c:Cube):float{
+	// Manhattan Distance with Penalty for Y axis
 	return Mathf.Abs(c.x - x) * distanceXPenalty + Mathf.Abs(c.y - y) * distanceYPenalty + Mathf.Abs(c.z - z);
+}
+
+
+function Distance(c:Cube):float{
+	return Vector3.Distance(Vector3(x,y,z), Vector3(c.x,c.y,c.z));
+}
+
+function Distance2D(c:Cube):float{
+	return Vector2.Distance(Vector2(x,z), Vector2(c.x,c.z));
 }
 
 private var color:Color;

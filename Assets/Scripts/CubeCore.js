@@ -9,7 +9,6 @@ public class CubeCore extends Cube{
 	function Awake(){
 		super.Awake();
 		radiusRenderer = GetComponent(RadiusRenderer);
-		radiusRenderer.transform.parent = transform;
 		radiusRenderer.SetColor(ColorForResourceType(resourceType));
 	}
 

@@ -133,7 +133,7 @@ private static var CameraMoveLerpSpeed:float = 4.0;
 private var lookAtTarget:Vector3;
 
 //Distance doesn't matter in Ortho Cam, just need to make sure near clip/far clip not triggered
-private var distance:float = 100;
+private var distance:float = 300;
 
 private var RotationX:float = 30;
 private var RotationY:float = 45;

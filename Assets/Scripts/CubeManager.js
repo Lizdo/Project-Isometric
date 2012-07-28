@@ -11,6 +11,10 @@ public var availableActionCounts:String = "-1|5|3";
 public var actions:Array = new Array();
 private var actionCounts:Array = new Array();
 
+public var useRandomGeneration:boolean = false;
+public var randomGenerationLevelSize:int;
+
+
 public var bounds:Bounds;
 private var cubes:Array;
 private var minions:Array;
@@ -64,13 +68,14 @@ function Awake(){
 	cursor = Instantiate(Resources.Load("Cursor", GameObject)).GetComponent(Cursor);
 
 	ParseActions();
+
+	if (useRandomGeneration){
+		GenerateLevel();
+	}
 }
 
 function Start () {
-	cursor.Hide();
-	// AddCubeAt(2,2,2,CubeType.Dirt);
-	// AddCubeAt(2,2,3,CubeType.Dirt);	
-	// AddCubeAt(2,2,4,CubeType.Water);		
+	cursor.Hide();	
 	isDirty = true;
 	currentAction = kActionDirt;
 	SetState(LevelState.LevelStart);
@@ -103,7 +108,36 @@ function Update () {
 	}
 }
 
+function GenerateLevel(){
+	var electricityPercentage:float = 0.1;
+	LevelGenerator.SetSeed(Mathf.Floor(Random.value*10000));
+	for (var x:int = -randomGenerationLevelSize; x < randomGenerationLevelSize; x++){
+		for (var z:int = -randomGenerationLevelSize; z < randomGenerationLevelSize; z++){
+			var maxHeight:int = LevelGenerator.Height(x,z);
+			if (maxHeight < 0){
+				continue;
+			}
+			for (var y:int = 0; y < maxHeight; y++){
+				if (Random.value <= electricityPercentage){
+					InitCubeAt(x,y,z,CubeType.Electricity);					
+				}else{
+					InitCubeAt(x,y,z,CubeType.Dirt);
+				}
+			}
+		}
+	}
 
+	if (type == LevelType.Build){
+		// Add an initial core cube somewhere
+		for (var c:Cube in cubes){
+			if (GetAdjucentCubes(c.x,c.y,c.z).length > 5){
+				var topCube:Cube = GetClearGetCubeAbove(c);
+				InitCubeAt(topCube.x, topCube.y+1, topCube.z, CubeType.Core);
+				return;
+			}
+		}
+	}
+}
 
 function UpdateItems(){
 	var telescopeActivated:boolean = telescopeActive;	
@@ -260,16 +294,12 @@ function UpdateBuild(){
 
 		// Every thing in power radius is powered
 		for (var c:Cube in cubes){
-			if (Distance(core,c) <= core.PowerRadius()){
+			if (Distance2D(core,c) <= core.PowerRadius()){
 				c.isPowered = true;
 			}
 		}
 
-		// If connected with cube with the same power cube, also powered
-		for (var c:Cube in cubes){
-			
-		}
-
+		// Cubes will propagate themselves
 	}
 }
 
@@ -312,7 +342,11 @@ function CalculateCoreSize(c:CubeCore){
 
 
 function Distance(c1:Cube, c2:Cube):float{
-	return Vector3.Distance(Vector3(c1.x,c1.y,c1.z), Vector3(c2.x,c2.y,c2.z));
+	return c1.Distance(c2);
+}
+
+function Distance2D(c1:Cube, c2:Cube):float{
+	return c1.Distance2D(c2);
 }
 
 ///////////////////////////
@@ -382,6 +416,16 @@ function Redo(){
 ///////////////////////////
 
 
+function InitCubeAt(x:int, y:int, z:int, type:CubeType){
+	var g:GameObject;
+	g = Instantiate(Resources.Load("Cube"+ type.ToString(), GameObject));
+			
+	var c:Cube = g.GetComponent(Cube);
+	c.x = x;
+	c.y = y;
+	c.z = z;
+	cubes.Add(c);
+}
 
 // Never call this directly!!
 function AddCubeAt(x:int, y:int, z:int, type:CubeType){
@@ -575,8 +619,8 @@ function PathfindGreed(start:Cube, end:Cube):Cube{
 	var distance:float = 1000;
 	var nextCube:Cube;
 	for (var c:Cube in a){
-		if (c.Distance(end) < distance){
-			distance = c.Distance(end);
+		if (c.PathfindingDistance(end) < distance){
+			distance = c.PathfindingDistance(end);
 			nextCube = c;			
 		}
 	}
@@ -618,8 +662,8 @@ function PathfindAStar(start:Cube, end:Cube):Cube{
 
 		
 		//c) For each of the 4 squares adjacent to this current square …
-		var GetAdjucentCubes:Array = GetAdjucentPassableCubes(currentCube);
-		for (var c:Cube in GetAdjucentCubes){
+		var adjucentPassableCubes:Array = GetAdjucentPassableCubes(currentCube);
+		for (var c:Cube in adjucentPassableCubes){
 
 			// If it is not walkable or if it is on the closed list, ignore it. 
 			if (!IsAvailable(c))
@@ -637,7 +681,7 @@ function PathfindAStar(start:Cube, end:Cube):Cube{
 				OpenList.Add(c);
 				c.parentCube = currentCube;
 				c.G = currentCube.G + 1;
-				c.H = end.Distance(c);
+				c.H = end.PathfindingDistance(c);
 				c.F = c.G + c.H;
 			}else{
 				// If it is on the open list already, check to see if this path to that square is better,
@@ -649,7 +693,7 @@ function PathfindAStar(start:Cube, end:Cube):Cube{
 				if (currentCube.G + 1 < c.G){
 					c.parentCube = currentCube;
 					c.G = currentCube.G + 1;
-					c.H = end.Distance(c);
+					c.H = end.PathfindingDistance(c);
 					c.F = c.G + c.H;
 				}
 			}
@@ -702,8 +746,8 @@ function PathfindAStar(start:Cube, end:Cube):Cube{
 	// Pathfinding Failed, return cube closest to target
 	c = ClosestToTargetCubeInClosedList(end);
 
-	// Rather not move if not helping with the distance
-	if (end.Distance(c) >= end.Distance(start))
+	// Rather not move if not helping with the PathfindingDistance
+	if (end.PathfindingDistance(c) >= end.PathfindingDistance(start))
 		return null;
 
 	if (!c || !c.parentCube)
@@ -757,9 +801,9 @@ function ClosestToTargetCubeInClosedList(end:Cube):Cube{
 	var closestCube:Cube;
 	var distance:float = 1000;
 	for (var c:Cube in ClosedList){
-		if (c.Distance(end) < distance){
+		if (c.PathfindingDistance(end) < distance){
 			closestCube = c;
-			distance = c.Distance(end);
+			distance = c.PathfindingDistance(end);
 		}
 	}
 	return closestCube;
@@ -804,15 +848,27 @@ function InitialCameraTarget():Vector3{
 		case LevelType.Minion:
 			if (AvailableMinion())
 				target = AvailableMinion().transform.position;
-				break;
+			break;
 		case LevelType.Physics:
 			if (AvailableSpawner())
 				target = AvailableSpawner().SurfacePosition();
-				break;
+			break;
+		case LevelType.Build:
+			if (AvailableCore())
+				target = AvailableCore().SurfacePosition();
+			break;
 	}
 	return target;
 }
 
+function AvailableCore():Cube{
+	for (var c:Cube in cubes){
+		if (c.type == CubeType.Core){
+			return c;
+		}
+	}
+	return null;
+}
 
 function AvailableSpawner():Cube{
 	for (var c:Cube in cubes){
