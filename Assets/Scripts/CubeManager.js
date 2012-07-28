@@ -82,10 +82,7 @@ function Start () {
 	print("Cube Manager Initiated");
 
 	log.font = inGameGUI.fontSmall;
-	centerText.font = inGameGUI.fontLarge;	
-
-	unpoweredMaterial = Resources.Load("Unpowered", Material);
-	
+	centerText.font = inGameGUI.fontLarge;		
 }
 
 private var levelComplete:boolean;
@@ -151,11 +148,17 @@ function UpdateItems(){
 			telescopeActive = true;
 		}
 	}
+
+	// Always activate the telescope in Buld Mode	
+	if (type == LevelType.Build){
+		telescopeActive = true;
+	}
+
 	if (telescopeActivated && !telescopeActive){
 		print("Telescope is no longer active!");
-
 		cameraManager.ZoomIn();
 	}
+
 }
 
 
@@ -267,13 +270,6 @@ function LoadNextlevel(){
 ///////////////////////////
 // BUILD Gameplay
 ///////////////////////////
-
-private var unpoweredMaterial:Material;
-
-public function UnpoweredMaterial():Material{
-	return unpoweredMaterial;
-}
-
 
 private var cores:Array;
 

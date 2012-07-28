@@ -34,6 +34,7 @@ public var H:float;
 public var parentCube:Cube;	//Used in Pathfinding, the shortest path is from the parentCube
 
 private var initialMaterial:Material;
+private var unpoweredMaterial:Material;
 
 private var cubeManager:CubeManager;
 
@@ -91,7 +92,15 @@ function Awake () {
 function Start(){
 	transform.position = Vector3(x * GRID_SIZE_X, y * GRID_SIZE_Y, z * GRID_SIZE_Z);	
 	renderer.enabled = true;
+
+	// Initialize Unpowered Materials
 	initialMaterial = renderer.sharedMaterial;
+	var mat:Material = Resources.Load("Unpowered" + type.ToString(), Material);
+	if (mat){
+		unpoweredMaterial = mat;
+	}else{
+		unpoweredMaterial = Resources.Load("Unpowered", Material);
+	}
 
 	if (cubeManager.type != LevelType.Build){
 		isPowered = true;
@@ -121,7 +130,7 @@ function LateUpdate(){
 
 	// Update visual after all the update is done.
 	if (!isPowered){
-		renderer.material = cubeManager.UnpoweredMaterial();
+		renderer.material = unpoweredMaterial;
 	}else{
 		renderer.material = initialMaterial;
 	}

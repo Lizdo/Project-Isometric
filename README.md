@@ -2,7 +2,7 @@
 
 (Current Version: V0.01, You'll need [Unity3D](http://unity3d.com/unity/download/) & [Blender](http://www.blender.org/download/get-blender/) to run the project.)
 
-My personal isometric block building game. Still work in progress. Project started on July.1 2012.
+An isometric block building game. Project started on July.1 2012.
 
 ![Screenshot](https://github.com/Lizdo/Project-Isometric/blob/master/Screenshot/Screenshot.png?raw=true)
 
@@ -11,9 +11,12 @@ My personal isometric block building game. Still work in progress. Project start
 - Touch left/right of the screen to rotate the camera
 - Undo/Redo support
 - Touch & Drag to Pan the Camera
+- Basic level generator using Perlin Noise
 
 ## Design
-- Mission Objective: Guide all the minions to their target
-- Use limited number of Cubes to solve navigation puzzles
-- Use Gear Cubes to activate mechanism and collect diamonds
+- Each Core Cube will power other cubes within a radius
+- Use Electricity Cube to Expand the power radius to other Unpowered Cores
+- Cover the whole area with Electricity
+
+(More design elements coming soon.)
 
