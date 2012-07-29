@@ -107,6 +107,12 @@ function Update () {
 
 function GenerateLevel(){
 	var electricityPercentage:float = 0.1;
+
+	var coreRatio:float = randomGenerationLevelSize/CubeCore.PowerRadiusForSize(1);
+	var numberOfCores:int = Mathf.Round(Mathf.Pow(coreRatio, 2));
+	print("Number of Cores to Generate:" + numberOfCores.ToString());
+	
+
 	LevelGenerator.SetSeed(Mathf.Floor(Random.value*10000));
 
 	// Iterate on a size * size, then check if it's within radius size
@@ -131,12 +137,44 @@ function GenerateLevel(){
 
 	if (type == LevelType.Build){
 		// Add an initial core cube somewhere
+
+		var initCore:Cube;
+		var topCube:Cube;
+		var newCores:Array = new Array();
+
 		for (var c:Cube in cubes){
-			if (GetAdjucentCubes(c.x,c.y,c.z).length > 5){
-				var topCube:Cube = GetClearGetCubeAbove(c);
-				InitCubeAt(topCube.x, topCube.y+1, topCube.z, CubeType.Core);
-				return;
+
+			// Find an Initial Core first
+			if (!initCore){
+				if (GetAdjucentCubes(c.x,c.y,c.z).length >= 6){
+					topCube = GetClearGetCubeAbove(c);
+					initCore = InitCubeAt(topCube.x, topCube.y+1, topCube.z, CubeType.Core);
+					print(initCore.ToString());
+					newCores.Add(initCore);
+				}
+				continue;
 			}
+		
+			// Add three more
+			var isValidCube:boolean = true;
+
+			for (var c1:CubeCore in newCores){
+				var randomOffset:float = Random.value * 3;
+				if (Distance2D(c, c1) < CubeCore.PowerRadiusForSize(1) + randomOffset){
+					isValidCube = false;
+					break;
+				}
+			}
+
+			if (isValidCube && GetAdjucentCubes(c.x,c.y,c.z).length >= 5){
+				topCube = GetClearGetCubeAbove(c);
+				var core:CubeCore = InitCubeAt(topCube.x, topCube.y+1, topCube.z, CubeType.Core);
+				core.isPowered = false;
+				newCores.Add(core);
+			}
+
+			if (newCores.length > numberOfCores)
+				return;
 		}
 	}
 }
@@ -417,7 +455,7 @@ function Redo(){
 ///////////////////////////
 
 
-function InitCubeAt(x:int, y:int, z:int, type:CubeType){
+function InitCubeAt(x:int, y:int, z:int, type:CubeType):Cube{
 	var g:GameObject;
 	g = Instantiate(Resources.Load("Cube"+ type.ToString(), GameObject));
 			
@@ -426,6 +464,7 @@ function InitCubeAt(x:int, y:int, z:int, type:CubeType){
 	c.y = y;
 	c.z = z;
 	cubes.Add(c);
+	return c;
 }
 
 // Never call this directly!!
@@ -864,7 +903,7 @@ function InitialCameraTarget():Vector3{
 
 function AvailableCore():Cube{
 	for (var c:Cube in cubes){
-		if (c.type == CubeType.Core){
+		if (c.type == CubeType.Core && c.isPowered){
 			return c;
 		}
 	}

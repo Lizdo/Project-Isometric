@@ -204,7 +204,7 @@ function AlignCameraWithWorld(){
 
 	// Tweak the OrthorGraphic Size According to Bounding Size
 	var extendsWithBuffer:Vector3 = b.extents * extentBuffer;
-	ZoomTo(extendsWithBuffer.magnitude);
+	ZoomTo(extendsWithBuffer.magnitude * Mathf.Sqrt(0.5));
 }
 
 ///////////////////////////

@@ -265,6 +265,11 @@ function SetColor(c:Color){
 	renderer.material.color = c;
 }
 
+function ToString():String{
+	return "CubeType" + type.ToString() + " @x: " + x.ToString()
+	+ " y: " + y.ToString()+ " z: " + z.ToString();
+}
+
 static function ResourceTypeWithString(s:String):ResourceType{
 	var count:int = System.Enum.GetNames(typeof(ResourceType)).length;
 	for (var i:int = 0; i < count; i++){

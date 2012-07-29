@@ -20,8 +20,6 @@ public static function SetWaterLevel(h:int){
 
 public static function Height(x:int, y:int):int{
 	var value:float = PerlinNoise_2D(x,y);
-	print(value);
-	
 	return Mathf.Round(value*height)-waterLevel;
 }
 

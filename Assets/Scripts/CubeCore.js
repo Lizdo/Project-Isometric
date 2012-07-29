@@ -10,6 +10,7 @@ public class CubeCore extends Cube{
 		super.Awake();
 		radiusRenderer = GetComponent(RadiusRenderer);
 		radiusRenderer.SetColor(ColorForResourceType(resourceType));
+		size = 1;
 	}
 
 	function Update(){
@@ -25,7 +26,11 @@ public class CubeCore extends Cube{
 	}
 
 	function PowerRadius(){
-		return Mathf.Pow(size+1, 2);
+		return PowerRadiusForSize(size);
+	}
+
+	static function PowerRadiusForSize(s:int){
+		return Mathf.Pow(s+1, 2);	
 	}
 	
 }
