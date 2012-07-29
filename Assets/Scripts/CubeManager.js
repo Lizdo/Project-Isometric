@@ -16,10 +16,13 @@ public var randomGenerationLevelSize:int;
 
 
 public var bounds:Bounds;
-private var cubes:Array;
+private var cubes:Cube[];
 private var minions:Array;
 private var items:Array;
-private var isDirty:boolean;
+
+// If the sub systems need to calculate the cached variables.
+public var isDirty:boolean;
+
 private var cameraManager:CameraManager;
 private var inGameGUI:InGameGUI;
 
@@ -58,7 +61,6 @@ function Awake(){
 	cameraManager = GetComponent(CameraManager);
 	inGameGUI = GetComponent(InGameGUI);	
 
-	cubes = FindObjectsOfType(Cube);
 	minions = FindObjectsOfType(Minion);
 	items =  FindObjectsOfType(Item);
 
@@ -72,6 +74,9 @@ function Awake(){
 	if (useRandomGeneration){
 		GenerateLevel();
 	}
+
+	// Cubes Generated in Init are added here
+	FindAllCubes();
 }
 
 function Start () {
@@ -88,13 +93,15 @@ function Start () {
 private var levelComplete:boolean;
 
 function Update () {
-	UpdateItems();
-
-	if (type == LevelType.Build){
-		UpdateBuild();
-	}
-	
 	if (isDirty){
+
+		UpdateItems();
+
+		// Heavy Update Here.
+		if (type == LevelType.Build){
+			UpdateBuild();
+		}
+
 		CalculateBoundingBox();
 		isDirty = false;
 	}
@@ -135,6 +142,9 @@ function GenerateLevel(){
 		}
 	}
 
+	// Fetch the cubes added by Random Generator, they are used in the loop afterwards
+	FindAllCubes();
+
 	if (type == LevelType.Build){
 		// Add an initial core cube somewhere
 
@@ -159,7 +169,7 @@ function GenerateLevel(){
 			var isValidCube:boolean = true;
 
 			for (var c1:CubeCore in newCores){
-				var randomOffset:float = Random.value * 3;
+				var randomOffset:float = Random.value * 8;
 				if (Distance2D(c, c1) < CubeCore.PowerRadiusForSize(1) + randomOffset){
 					isValidCube = false;
 					break;
@@ -173,8 +183,8 @@ function GenerateLevel(){
 				newCores.Add(core);
 			}
 
-			if (newCores.length > numberOfCores)
-				return;
+			// if (newCores.length > numberOfCores)
+			// 	return;
 		}
 	}
 }
@@ -337,8 +347,10 @@ function UpdateBuild(){
 				c.isPowered = true;
 			}
 		}
+	}
 
-		// Cubes will propagate themselves
+	for (var c:Cube in cubes){
+		c.UpdateBuild();
 	}
 }
 
@@ -463,7 +475,7 @@ function InitCubeAt(x:int, y:int, z:int, type:CubeType):Cube{
 	c.x = x;
 	c.y = y;
 	c.z = z;
-	cubes.Add(c);
+	//cubes.Add(c);
 	return c;
 }
 
@@ -476,7 +488,8 @@ function AddCubeAt(x:int, y:int, z:int, type:CubeType){
 	c.x = x;
 	c.y = y;
 	c.z = z;
-	cubes.Add(c);
+	//cubes.Add(c);
+	FindAllCubes();
 
 	// TODO: Better data structure
 	ModifyActionCount(currentAction, -1);
@@ -485,6 +498,9 @@ function AddCubeAt(x:int, y:int, z:int, type:CubeType){
 	cameraManager.isDirty = true;
 }
 
+function FindAllCubes(){
+	cubes = FindObjectsOfType(Cube);
+}
 
 // Never call this directly!!
 function RemoveCubeAt(x:int, y:int, z:int){
@@ -495,7 +511,8 @@ function RemoveCubeAt(x:int, y:int, z:int){
 		if (c.x == x && c.y == y && c.z == z){
 			if (!c.CanDelete())
 				return;
-			cubes.RemoveAt(i);
+			//cubes.RemoveAt(i);
+			FindAllCubes();
 			c.Delete();
 
 			// Update Resource Count
@@ -503,6 +520,7 @@ function RemoveCubeAt(x:int, y:int, z:int){
 				ModifyActionCount(c.resourceType.ToString(), 1);
 			}
 
+			isDirty = true;
 			return;
 		}
 	}

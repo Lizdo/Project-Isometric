@@ -17,6 +17,16 @@ function Start () {
 	if (Application.platform == RuntimePlatform.IPhonePlayer){
 	    switch (iPhone.generation){
 	    	case iPhoneGeneration.iPad1Gen:
+	        case iPhoneGeneration.iPhone3GS:
+	        	QualitySettings.antiAliasing = 0;
+	        	Application.targetFrameRate = 30.0;	        	
+	        	break;	        	            
+	    }
+	}
+
+	if (Application.platform == RuntimePlatform.IPhonePlayer){
+	    switch (iPhone.generation){
+	    	case iPhoneGeneration.iPad1Gen:
 	        case iPhoneGeneration.iPad2Gen:
 	        case iPhoneGeneration.iPad3Gen:
 	        	numberOfCubesInView *= 2;
@@ -89,7 +99,7 @@ function InitCamera(){
 }
 
 function UpdateCamera() {
-	if (Time.time - startBlendTime > blendTime){
+	if (blendInProgress && Time.time - startBlendTime > blendTime){
 		blendInProgress = false;
 	}
 
@@ -174,7 +184,7 @@ function UpdateRotation(){
 		}
 		isDirty = true;
 	}
-	transform.rotation =  Quaternion.Euler(RotationX, RotationY, RotationZ);
+	transform.rotation =  Quaternion.Euler(RotationX, RotationY, RotationZ);	
 }
 
 private var positionTolerance:float = 0.2;
@@ -289,9 +299,6 @@ function OnGUI(){
 		lastGUIAction = Time.time;
 	}
 }
-
-// TODO: Use the closest touch to last touch on iOS
-
 
 function UpdateInput(){
 	// Block Input if There's an GUI Action

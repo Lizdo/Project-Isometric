@@ -105,10 +105,17 @@ function Start(){
 	if (cubeManager.type != LevelType.Build){
 		isPowered = true;
 	}
+
+	if (cubeManager.type != LevelType.Physics){
+		if (collider){
+			//collider.enabled = false;
+		}
+	}
+	oldIsPowered = !isPowered;
+	transform.position = Vector3(x * GRID_SIZE_X, y * GRID_SIZE_Y, z * GRID_SIZE_Z);
 }
 
 function Update () {
-	transform.position = Vector3(x * GRID_SIZE_X, y * GRID_SIZE_Y, z * GRID_SIZE_Z);
 	if (isDestroyed){
 		var targetColor:Color = Color(color.r, color.g, color.b, 0);
 		var t:float = (Time.time - timeToStartDestroy)/destroyTime;
@@ -118,21 +125,22 @@ function Update () {
 			Destroy(gameObject);			
 		}
 	}
-
-	if (cubeManager.type == LevelType.Build){
-		UpdateBuild();
-	}
 }
+
+protected var oldIsPowered:boolean;
 
 function LateUpdate(){
 	if (cubeManager.type != LevelType.Build)
 		return;
 
 	// Update visual after all the update is done.
-	if (!isPowered){
-		renderer.material = unpoweredMaterial;
-	}else{
-		renderer.material = initialMaterial;
+	if (isPowered != oldIsPowered){	
+		if (!isPowered){
+			renderer.material = unpoweredMaterial;
+		}else{
+			renderer.material = initialMaterial;
+		}
+		oldIsPowered = isPowered;
 	}
 }
 
@@ -162,9 +170,11 @@ function Delete(){
 // Build Functions
 ///////////////////////////
 
+private var adjucentCubes:Array;
+
 function UpdateBuild(){
+	adjucentCubes = cubeManager.GetAdjucentCubes(x,y,z);
 	if (isPowered && isPowerSource){
-		var adjucentCubes:Array = cubeManager.GetAdjucentCubes(x,y,z);
 		for (var c:Cube in adjucentCubes){
 			if (c.isPowered == false){
 				// Propagate Power
