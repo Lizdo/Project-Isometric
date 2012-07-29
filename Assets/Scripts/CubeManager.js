@@ -587,8 +587,10 @@ function CubeTouched(c:Cube, n:Vector3){
 		return;
 	}
 
-	if (!IsAdjucentCubesPowered(c.x+n.x, c.y+n.y, c.z+n.z))
+	if (!IsAdjucentCubesPowered(c.x+n.x, c.y+n.y, c.z+n.z)){		
+		cursor.Hide();
 		return;
+	}
 
 	// Add Cube
 	cursor.SetXYZ(c.x+n.x, c.y+n.y, c.z+n.z);	
@@ -612,6 +614,12 @@ function IsAdjucentCubesPowered(x:int, y:int, z:int){
 }
 
 function CubeReleased(c:Cube){
+	// If the Cursor is Hidden or Disabled, do nothing
+	if (!cursor.isValid){
+		cursor.Hide();
+		return;
+	}
+
 	cursor.Hide();
 
 	if (!c)
@@ -636,7 +644,8 @@ function CubeReleased(c:Cube){
 
 		AddCubeOperationWithResourceType(cursor.x, cursor.y, cursor.z, Cube.ResourceTypeWithString(currentAction));	
 	}
-	
+
+
 }
 
 // TODO: Add different cubes
