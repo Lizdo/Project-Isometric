@@ -13,12 +13,22 @@ function Awake(){
 
 function Start () {
 	Application.targetFrameRate = 60.0;
+
+	if (Application.platform == RuntimePlatform.IPhonePlayer){
+	    switch (iPhone.generation){
+	    	case iPhoneGeneration.iPad1Gen:
+	        case iPhoneGeneration.iPad2Gen:
+	        case iPhoneGeneration.iPad3Gen:
+	        	numberOfCubesInView *= 2;
+	        	break;	        	            
+	    }
+	}	
+
 	InitCamera();
 
 	if (UseZoomInCamera){
 		StartCoroutine(kInitialAnimationSequence);
 	}
-
 	print("Camera Manager Initiated");
 }
 

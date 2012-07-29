@@ -38,10 +38,10 @@ private static var seed:int;
 private static var publicSeed:int;
 
 // Smoothness
-private static var persistence:float = 0.1;
+private static var persistence:float = 0.25;
 
 // Iterations to add noise
-private static var Number_Of_Octaves:int = 6;
+private static var Number_Of_Octaves:int = 4;
 
 
 ///////////////////////////
