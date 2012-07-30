@@ -62,7 +62,6 @@ function LateUpdate () {
 // 	Automatically zoom to show the whole level
 
 public var UseZoomInCamera:boolean = true;
-private var blendTime:float = 1;
 private var startBlendTime:float;
 private var blendInProgress:boolean;
 private var zoomInLookAtTarget:Vector3;
@@ -230,9 +229,19 @@ function AlignCameraWithWorld(){
 // Camera Help Function
 ///////////////////////////
 
+private var blendTime:float = 1;
+private var defaultBlendTime:float = 3.0;
+private var inertiaBlendTime:float = 3.0;
+
 function LookAt(target:Vector3){
 	SetLookAtTarget(target);
 	StartBlending(Time.time, false);
+}
+
+function LookAtWithInertia(target:Vector3){
+	SetLookAtTarget(target);
+	StartBlending(Time.time, true);
+	blendTime = inertiaBlendTime;
 }
 
 function SetLookAt(target:Vector3){
@@ -252,6 +261,7 @@ function ZoomTo(size:float){
 	targetSize = size;
 	// Zoom will always happen at the same time as lookat
 	StartBlending(Time.time, true);
+	blendTime = defaultBlendTime;
 }
 
 function StartBlending(t:float, force:boolean){
@@ -264,10 +274,35 @@ function StartBlending(t:float, force:boolean){
 
 function BlendPercentage():float{
 	var deltaT:float = Time.time - startBlendTime;
-	var x:float = deltaT/blendTime;
-	// Ease In Ease Out
-	x = Mathf.SmoothStep(0,1,x);
+	var t:float = deltaT/blendTime;
+	var x:float = EaseOutQuad(t, 0, 1, 1);
 	return Mathf.Clamp01(x);
+}
+
+// t: current time
+// b: beginning value
+// c: change in value
+// d: duration
+
+function EaseInCubic (t:float, b:float, c:float, d:float):float{
+	t/=d;
+	return c*t*t*t + b;
+}
+
+
+function EaseOutCubic (t:float, b:float, c:float, d:float):float{
+	t=t/d-1;
+	return c*(t*t*t + 1) + b;
+}
+
+function EaseInQuad (t:float, b:float, c:float, d:float):float {
+	t/=d;
+	return c*t*t + b;
+}
+
+function EaseOutQuad (t:float, b:float, c:float, d:float):float {
+	t/=d;
+	return -c *t*(t-2) + b;
 }
 
 ///////////////////////////
@@ -278,11 +313,35 @@ function TurnCamera(degree:float){
 	//RotationY += degree;
 	targetRotationY = targetRotationY + degree;
 	StartBlending(Time.time, true);
+	blendTime = defaultBlendTime;
 }
 
 
-function PanCamera(offset:Vector3){
-	SetLookAt(lookAtTarget+offset);
+function PanCamera(offset:Vector3, timeUsed:float){
+	if (timeUsed == 0){
+		SetLookAt(lookAtTarget+offset);
+		return;
+	}
+
+	// Keep the average speed constant
+	var v:float = offset.magnitude/timeUsed;
+
+	print("Time Used:" + timeUsed.ToString());
+	
+	timeUsed = Mathf.Clamp(timeUsed,0.35,100);
+
+	print(v);
+
+	// Speed limit
+	v = Mathf.Clamp(v,0,15);
+
+	var a:float = 1.2;	// Friction
+	var t:float = v/a;
+
+	var extraDistance:float = 0.5 * a * t * t;
+	inertiaBlendTime = t;
+
+	LookAtWithInertia(lookAtTarget + offset * (1 + extraDistance/offset.magnitude));
 }
 
 ///////////////////////////
@@ -350,6 +409,8 @@ function ClosestTouchPointFromLast(touches:Array):Touch{
 // TODO: Optimize the number of Ray Casts
 
 private var touchStartPoint:Vector2;
+private var touchStartTime:float;
+private var touchEndTime:float;
 private var startPointIn3D:Vector3;
 
 private var cameraMovementTolerance:float = 64.0;
@@ -360,6 +421,7 @@ function TouchBeganAt(p:Vector2){
 		return;
 
 	touchStartPoint = p;
+	touchStartTime = Time.time;
 	lastCubePoint = Vector2.zero;
 	cameraPanning = false;
 
@@ -397,7 +459,7 @@ function TouchMovedAt(p:Vector2){
 
 	if (cameraPanning){
 		var endPointIn3D = RaycastHitForCameraPanning(p);
-		PanCamera(startPointIn3D - endPointIn3D);
+		PanCamera(startPointIn3D - endPointIn3D, 0);
 		cubeManager.CubeReleased(null);
 		return;
 	}
@@ -428,8 +490,12 @@ function TouchEndedAt(p:Vector2){
 	}
 
 	// Do not even trigger the camera rotation
-	if (cameraPanning)
+	if (cameraPanning){
+		var endPointIn3D = RaycastHitForCameraPanning(p);
+		touchEndTime = Time.time;
+		PanCamera(startPointIn3D - endPointIn3D, touchEndTime - touchStartTime);
 		return;
+	}
 
 	// Release Cube Cursor
 	hit = RaycastHitForPoint(CompensatedTouchPoint(p));
