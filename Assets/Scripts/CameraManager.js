@@ -32,9 +32,12 @@ function Start () {
 	        	numberOfCubesInView *= 2;
 	        	break;	        	            
 	    }
-	}	
+	}
 
-	InitCamera();
+	targetPosition = transform.position;
+	targetRotationY = RotationY;
+
+	ResetCamera();
 
 	if (UseZoomInCamera){
 		StartCoroutine(kInitialAnimationSequence);
@@ -70,7 +73,7 @@ public function ZoomOut(){
 	}
 	UseZoomInCamera = false;
 	zoomInLookAtTarget = lookAtTarget;
-	InitCamera();
+	ResetCamera();
 }
 
 public function ZoomIn(){
@@ -78,7 +81,7 @@ public function ZoomIn(){
 		return;	
 	}
 	UseZoomInCamera = true;
-	InitCamera();
+	ResetCamera();
 	if (zoomInLookAtTarget != Vector3.zero){		
 		LookAt(zoomInLookAtTarget);
 	}
@@ -86,16 +89,12 @@ public function ZoomIn(){
 
 public static var kInitialAnimationSequence:String = "InitialAnimationSequence";
 
-function InitCamera(){
-	targetPosition = transform.position;
-	targetRotationY = RotationY;
-
+function ResetCamera(){
 	if (UseZoomInCamera){
 		InitZoomInCamera();
 	}else{
 		InitZoomOutCamera();
 	}
-
 }
 
 function UpdateCamera() {
