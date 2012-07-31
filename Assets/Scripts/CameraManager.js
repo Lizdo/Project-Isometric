@@ -321,30 +321,31 @@ function TurnCamera(degree:float){
 }
 
 
-function PanCamera(offset:Vector3, timeUsed:float){
-	if (offset.sqrMagnitude == 0)
+function PanCamera(offset:Vector3){
+	SetLookAt(lookAtTarget+offset);
+}
+
+
+function PanCameraWithInertia(offset:Vector3, timeUsed:float){
+	if (offset.sqrMagnitude == 0 || timeUsed == 0)
 		return;
 
-	if (timeUsed == 0){
-		SetLookAt(lookAtTarget+offset);
-		return;
-	}
-
+	print("Distance: "+offset.magnitude);
+	
 	// Keep the average speed constant
 	var v:float = offset.magnitude/timeUsed;
-
 	print("Time Used:" + timeUsed.ToString());
 	
 	timeUsed = Mathf.Clamp(timeUsed,0.2,100);
-
 	print(v);
 
 	// Speed limit
-	v = Mathf.Clamp(v,0,50);
+	//v = Mathf.Clamp(v,0,50);
 
-	var a:float = 2;	// Friction
+	var a:float = 100;	// Friction
 	var t:float = v/a;
 
+	// s = 1/2 * a * t^2
 	var extraDistance:float = 0.5 * a * t * t;
 	inertiaBlendTime = t;
 
@@ -419,6 +420,7 @@ function ClosestTouchPointFromLast(touches:Array):Touch{
 private var touchStartPoint:Vector2;
 private var touchStartTime:float;
 private var touchEndTime:float;
+private var startPointBeforeDraggingIn3D:Vector3;
 private var startPointIn3D:Vector3;
 
 private var cameraMovementTolerance:float = 64.0;
@@ -436,7 +438,7 @@ function TouchBeganAt(p:Vector2){
 	PRINT_IOS("Touch Started At" + p.ToString());		
 
 	if (UseZoomInCamera){
-		startPointIn3D = RaycastHitForCameraPanning(p);
+		startPointBeforeDraggingIn3D = RaycastHitForCameraPanning(p);
 	}
 
 	// Stop Camera Panning if in Progress
@@ -470,7 +472,7 @@ function TouchMovedAt(p:Vector2){
 
 	if (cameraPanning){
 		var endPointIn3D = RaycastHitForCameraPanning(p);
-		PanCamera(startPointIn3D - endPointIn3D, 0);
+		PanCamera(startPointIn3D - endPointIn3D);
 		cubeManager.CubeReleased(null);
 		return;
 	}
@@ -504,7 +506,9 @@ function TouchEndedAt(p:Vector2){
 	if (cameraPanning){
 		var endPointIn3D = RaycastHitForCameraPanning(p);
 		touchEndTime = Time.time;
-		PanCamera(startPointIn3D - endPointIn3D, touchEndTime - touchStartTime);
+
+		// Discard the cameraMovementTolerance, because when we want inertia, usually we want it to be fluid
+		PanCameraWithInertia(startPointBeforeDraggingIn3D - endPointIn3D, touchEndTime - touchStartTime);
 		return;
 	}
 
