@@ -249,6 +249,10 @@ function SetLookAt(target:Vector3){
 	transform.position = targetPosition;
 }
 
+function StopLookAt(){
+	targetPosition = transform.position;
+}
+
 function SetLookAtTarget(target:Vector3){
 	var x:float = target.x - distance * Mathf.Sin(Mathf.Deg2Rad * RotationY);
 	var y:float = target.y + distance * Mathf.Sin(Mathf.Deg2Rad * RotationX);	
@@ -318,6 +322,9 @@ function TurnCamera(degree:float){
 
 
 function PanCamera(offset:Vector3, timeUsed:float){
+	if (offset.sqrMagnitude == 0)
+		return;
+
 	if (timeUsed == 0){
 		SetLookAt(lookAtTarget+offset);
 		return;
@@ -328,20 +335,21 @@ function PanCamera(offset:Vector3, timeUsed:float){
 
 	print("Time Used:" + timeUsed.ToString());
 	
-	timeUsed = Mathf.Clamp(timeUsed,0.35,100);
+	timeUsed = Mathf.Clamp(timeUsed,0.2,100);
 
 	print(v);
 
 	// Speed limit
-	v = Mathf.Clamp(v,0,15);
+	v = Mathf.Clamp(v,0,50);
 
-	var a:float = 1.2;	// Friction
+	var a:float = 2;	// Friction
 	var t:float = v/a;
 
 	var extraDistance:float = 0.5 * a * t * t;
 	inertiaBlendTime = t;
 
-	LookAtWithInertia(lookAtTarget + offset * (1 + extraDistance/offset.magnitude));
+	// The Distance is already covered in the previous TouchMoved
+	LookAtWithInertia(lookAtTarget + offset * extraDistance/offset.magnitude);
 }
 
 ///////////////////////////
@@ -430,6 +438,9 @@ function TouchBeganAt(p:Vector2){
 	if (UseZoomInCamera){
 		startPointIn3D = RaycastHitForCameraPanning(p);
 	}
+
+	// Stop Camera Panning if in Progress
+	StopLookAt();
 
 	hit = RaycastHitForPoint(CompensatedTouchPoint(p));
 
