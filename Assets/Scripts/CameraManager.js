@@ -330,13 +330,17 @@ function PanCameraWithInertia(offset:Vector3, timeUsed:float){
 	if (offset.sqrMagnitude == 0 || timeUsed == 0)
 		return;
 
+	// If moving too slow, do not trigger inertia
+	if (timeUsed > 0.6)
+		return;
+
 	print("Distance: "+offset.magnitude);
 	
 	// Keep the average speed constant
 	var v:float = offset.magnitude/timeUsed;
 	print("Time Used:" + timeUsed.ToString());
 	
-	timeUsed = Mathf.Clamp(timeUsed,0.2,100);
+	timeUsed = Mathf.Clamp(timeUsed,0.1,100);
 	print(v);
 
 	// Speed limit
