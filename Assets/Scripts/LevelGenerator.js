@@ -1,26 +1,66 @@
 #pragma strict
 
-
-
 ///////////////////////////
 // Public Interface
 ///////////////////////////
+
+enum LevelPattern{
+	Flat,
+	Islands,
+	Panisular,
+	Skyscraper
+}
+
+private static var pattern:LevelPattern = LevelPattern.Islands;
 
 public static function SetSeed(seed:int){
 	publicSeed = seed;
 }
 
-public static function SetMaxHeight(h:int){
-	height = h;
-}
+public static function SetPattern(p:LevelPattern){
+	pattern = p;
 
-public static function SetWaterLevel(h:int){
-	waterLevel = h;
+	switch(pattern){
+		case LevelPattern.Flat:
+			floor = 1;
+			height = 5;
+			waterLevel = 1;
+			base = 0;
+			frequency = 0.7;
+			amplitude = 1;
+			break;
+		case LevelPattern.Islands:
+			floor = 0;
+			height = 16;
+			waterLevel = 8;
+			base = -0.02;
+			frequency = 0.7;
+			amplitude = 1;
+			break;
+		case LevelPattern.Panisular:
+			floor = 0;
+			height = 7;
+			waterLevel = 3;
+			base = 0.1;
+			frequency = 0.5;
+			amplitude = 1;
+			break;
+		case LevelPattern.Skyscraper:
+			floor = 1;
+			height = 6;
+			waterLevel = 0;
+			base = 0;
+			frequency = 1;
+			amplitude = 1;
+			break;
+	}
 }
 
 public static function Height(x:int, y:int):int{
+	SetPattern(pattern);
+	
 	var value:float = PerlinNoise_2D(x,y);
-	return Mathf.Round(value*height)-waterLevel;
+	return Mathf.Max(Mathf.Round(value*height)-waterLevel, floor);
 }
 
 ///////////////////////////
@@ -31,17 +71,21 @@ public static function Height(x:int, y:int):int{
 private static var resolution:int = 60;
 
 // Max Y value for the terrain generated
+private static var floor:int = 0;
+private static var base:float = 0;
 private static var height:int = 15;
-private static var waterLevel:int = 8;
+private static var waterLevel:int = 7;
+private static var frequency:float = 0.5;
+private static var amplitude:float = 1;
 
-private static var seed:int;
+private static var privateSeed:int = 0;
 private static var publicSeed:int;
 
 // Smoothness
 private static var persistence:float = 0.25;
 
 // Iterations to add noise
-private static var Number_Of_Octaves:int = 4;
+private static var Number_Of_Octaves:int = 3;
 
 
 ///////////////////////////
@@ -53,7 +97,7 @@ private static var Number_Of_Octaves:int = 4;
 
 static function Noise(x:int, y:int){
  	var n:int = x + y * resolution;
-  	n = (n<<13) ^ n * (seed+publicSeed);
+  	n = (n<<13) ^ n * (privateSeed+publicSeed);
   	Random.seed = n;
  	return Random.value;
  }
@@ -96,16 +140,34 @@ static function Cosine_Interpolate(a:float, b:float, x:float){
 }
 
 static function PerlinNoise_2D(x:int, y:int){
-    var total:float = 0;
-    var p:float = persistence;
-    var n:int = Number_Of_Octaves - 1;
+    var total:float;
 
-    for (var i:int = 0; i < n; i++){
-    	seed = i;
-    	var frequency:int = Mathf.Pow(2,i);
-    	var amplitude:float = Mathf.Pow(p,i);
-    	total = total + InterpolatedNoise(x * frequency, y * frequency) * amplitude;
+    /* Original Algorithm */
+    // var p:float = persistence;
+    // var n:int = Number_Of_Octaves - 1;
+
+    // for (var i:int = 0; i < n; i++){
+    // 	seed = i;
+    // 	var frequency:int = Mathf.Pow(2,i);
+    // 	var amplitude:float = Mathf.Pow(p,i);
+    // 	total = total + InterpolatedNoise(x * frequency, y * frequency) * amplitude;
+    // }
+    // return total;
+    /* End */
+
+    // Only 1 pass with a smoothed interpolation to get less noise
+
+    if (pattern == LevelPattern.Skyscraper){
+    	total = base + InterpolatedNoise(x * frequency, y * frequency) * amplitude;
+    	if (total < 0.6)
+    		return 0;
+    	else
+    		return total;
     }
+
+    total = base + InterpolatedNoise(x * frequency, y * frequency) * amplitude;
+    total = Mathf.Clamp01(total);
+    
     return total;
 }
 

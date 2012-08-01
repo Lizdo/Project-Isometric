@@ -187,6 +187,8 @@ function GenerateLevel(){
 			// 	return;
 		}
 	}
+
+	print(initCubeCount.ToString() + " Cubes Generated");
 }
 
 function UpdateItems(){
@@ -466,6 +468,7 @@ function Redo(){
 // Basic Operations
 ///////////////////////////
 
+private var initCubeCount = 0;
 
 function InitCubeAt(x:int, y:int, z:int, type:CubeType):Cube{
 	var g:GameObject;
@@ -475,7 +478,13 @@ function InitCubeAt(x:int, y:int, z:int, type:CubeType):Cube{
 	c.x = x;
 	c.y = y;
 	c.z = z;
+
 	//cubes.Add(c);
+
+	// Avoid crash unity when too many cubes are spawned...
+	initCubeCount++;
+	ASSERT(initCubeCount < 1500, "Too Many Cubes Spawned!!!");
+
 	return c;
 }
 
