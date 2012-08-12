@@ -189,6 +189,16 @@ private var positionTolerance:float = 0.2;
 
 
 function UpdatePosition(){
+	// Camera rebound when out of bounds, only happen when there's no input
+	var b:Bounds = cubeManager.bounds;
+	//var extraCubeSize:Vector3 = Cube.GridScale() * numberOfCubesInView/3;
+	//b.Expand(extraCubeSize);
+	if (!cameraPanning && !b.Contains(lookAtTarget)){
+		lookAtTarget = RoughInterceptionToBound(lookAtTarget, b);
+		LookAtWithInertia(lookAtTarget);
+		print("New Lookat Target: " + lookAtTarget.ToString());		
+	}
+
 	if (Mathf.Abs(Vector3.Distance(targetPosition, transform.position)) < positionTolerance){
 		transform.position = targetPosition;
 	}else{
@@ -211,7 +221,6 @@ function UpdateZoom(){
 
 
 function AlignCameraWithWorld(){
-
 	var b:Bounds = cubeManager.bounds;
 	var center:Vector3 = Vector3(
 			b.center.x,
@@ -259,6 +268,24 @@ function SetLookAtTarget(target:Vector3){
 	var z:float = target.z - distance * Mathf.Cos(Mathf.Deg2Rad * RotationY);	
 	targetPosition = Vector3(x,y,z);
 	lookAtTarget = target;	
+}
+
+function ClosestPointOnBounds(point:Vector3, box:Bounds):Vector3{
+	var MPoint:Vector3;
+
+	MPoint.x = (point.x < box.min.x) ? box.min.x : (point.x > box.max.x) ? box.max.x : point.x;
+	MPoint.y = (point.y < box.min.y) ? box.min.y : (point.y > box.max.y) ? box.max.y : point.y;
+	MPoint.z = (point.z < box.min.z) ? box.min.z : (point.z > box.max.z) ? box.max.z : point.z;
+
+	return MPoint;
+}
+
+
+function RoughInterceptionToBound(point:Vector3, box:Bounds):Vector3{
+	var closestPoint:Vector3 = ClosestPointOnBounds(point,box);
+	var p:Vector3 = Vector3.Project(closestPoint, point);
+	print(point.ToString() + closestPoint.ToString() + p.ToString());
+	return p;
 }
 
 function ZoomTo(size:float){
@@ -513,6 +540,7 @@ function TouchEndedAt(p:Vector2){
 
 		// Discard the cameraMovementTolerance, because when we want inertia, usually we want it to be fluid
 		PanCameraWithInertia(startPointBeforeDraggingIn3D - endPointIn3D, touchEndTime - touchStartTime);
+		cameraPanning = false;
 		return;
 	}
 
