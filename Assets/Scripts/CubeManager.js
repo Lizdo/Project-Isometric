@@ -313,10 +313,13 @@ function LevelComplete(){
 }
 
 function LoadNextlevel(){
-	var index:int = Application.loadedLevel + 1;
-	if (index >= Application.levelCount)
-		index = Application.levelCount - 1;
-	Application.LoadLevel(index);
+	// Go back to menu
+	Application.LoadLevel(0);
+	
+	// var index:int = Application.loadedLevel + 1;
+	// if (index >= Application.levelCount)
+	// 	index = Application.levelCount - 1;
+	// Application.LoadLevel(index);
 }
 
 

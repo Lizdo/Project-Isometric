@@ -22,7 +22,14 @@ function Start () {
 	borderPadding *= resolutionRatio;
 	minHeight *= resolutionRatio;
 
+	var fontName:String = "MyriadPro-BoldCond";
+	var baseFontSize:int = 16;
+	var fontSmallSize:int = baseFontSize * resolutionRatio;
+	var fontLargeSize:int = fontSmallSize * 2;
+
+	var font:Font = Resources.Load(fontName + fontLargeSize.ToString(), Font);	
 	skin = Resources.Load("Skin", GUISkin);
+	skin.font = font;
 }
 
 private var borderPadding:float = 50;

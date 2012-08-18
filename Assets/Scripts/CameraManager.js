@@ -191,9 +191,10 @@ private var positionTolerance:float = 0.2;
 function UpdatePosition(){
 	// Camera rebound when out of bounds, only happen when there's no input
 	var b:Bounds = cubeManager.bounds;
-	//var extraCubeSize:Vector3 = Cube.GridScale() * numberOfCubesInView/3;
-	//b.Expand(extraCubeSize);
-	if (!cameraPanning && !b.Contains(lookAtTarget)){
+	var extraCubeSize:Vector3 = Cube.GridScale() * numberOfCubesInView;
+	b.Expand(extraCubeSize);
+
+	if (!cameraPanning && !IsTargetInBound(lookAtTarget, b)){
 		lookAtTarget = RoughInterceptionToBound(lookAtTarget, b);
 		LookAtWithInertia(lookAtTarget);
 		print("New Lookat Target: " + lookAtTarget.ToString());		
@@ -206,6 +207,14 @@ function UpdatePosition(){
 	}
 }
 
+function IsTargetInBound(t:Vector3, b:Bounds):boolean{
+	if (t.x > b.max.x || t.x < b.min.x)
+		return false;
+	if (t.z > b.max.z || t.z < b.min.z)
+		return false;
+
+	return true;
+}
 
 private var targetSize:float;
 private var sizeTolerance:float = 0.1;
@@ -270,22 +279,25 @@ function SetLookAtTarget(target:Vector3){
 	lookAtTarget = target;	
 }
 
-function ClosestPointOnBounds(point:Vector3, box:Bounds):Vector3{
+function ClosestPointOnBounds2D(point:Vector3, box:Bounds):Vector3{
 	var MPoint:Vector3;
 
 	MPoint.x = (point.x < box.min.x) ? box.min.x : (point.x > box.max.x) ? box.max.x : point.x;
-	MPoint.y = (point.y < box.min.y) ? box.min.y : (point.y > box.max.y) ? box.max.y : point.y;
+	//MPoint.y = (point.y < box.min.y) ? box.min.y : (point.y > box.max.y) ? box.max.y : point.y;
 	MPoint.z = (point.z < box.min.z) ? box.min.z : (point.z > box.max.z) ? box.max.z : point.z;
+	MPoint.y = point.y;
 
 	return MPoint;
 }
 
 
 function RoughInterceptionToBound(point:Vector3, box:Bounds):Vector3{
-	var closestPoint:Vector3 = ClosestPointOnBounds(point,box);
-	var p:Vector3 = Vector3.Project(closestPoint, point);
-	print(point.ToString() + closestPoint.ToString() + p.ToString());
-	return p;
+	return ClosestPointOnBounds2D(point,box);
+
+	// var closestPoint:Vector3 = ClosestPointOnBounds(point,box);
+	// var p:Vector3 = Vector3.Project(closestPoint, point);
+	// print(point.ToString() + closestPoint.ToString() + p.ToString());
+	// return p;
 }
 
 function ZoomTo(size:float){
@@ -420,6 +432,14 @@ function UpdateInput(){
 	    // Set last touchpoint only after all the touches are processed
 	    lastTouchPoint = touch.position;
 	}else{
+
+		if (Input.mousePosition.x < 0 
+			|| Input.mousePosition.y <0
+			|| Input.mousePosition.x > Screen.width
+			|| Input.mousePosition.y > Screen.height){
+			return;
+		}
+
 	    if(Input.GetMouseButtonDown(0)){
 	        TouchBeganAt(Input.mousePosition);
 	    }else if(Input.GetMouseButton(0)){
@@ -427,7 +447,7 @@ function UpdateInput(){
 	    }else if(Input.GetMouseButtonUp(0)){
 	        TouchEndedAt(Input.mousePosition);
 	    }
-	}   
+	}  
 }
 
 private var lastTouchPoint:Vector2 = Vector2.zero;
