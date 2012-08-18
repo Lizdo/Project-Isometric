@@ -312,12 +312,10 @@ function LevelComplete(){
 	LoadNextlevel();	
 }
 
-private var MaxLevelID:int = 0;
-
 function LoadNextlevel(){
 	var index:int = Application.loadedLevel + 1;
-	if (index > MaxLevelID)
-		index = 0;
+	if (index >= Application.levelCount)
+		index = Application.levelCount - 1;
 	Application.LoadLevel(index);
 }
 
