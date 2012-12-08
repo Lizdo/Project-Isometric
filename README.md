@@ -18,7 +18,6 @@ An isometric block building game. Project started on July.1 2012.
 - Use Electricity Cube to Expand the power radius to other Unpowered Cores
 - Cover the whole area with Electricity
 
-[Play the current build!](https://github.com/Lizdo/Project-Isometric/blob/master/Export/ProjectISO.html)
-
 (More design elements coming soon.)
 
+###[Play the current build!](http://htmlpreview.github.com/?https://github.com/Lizdo/Project-Isometric/blob/master/Export/ProjectISO.html)
