@@ -1,4 +1,4 @@
-public class Cursor extends Cube{
+public class CubeCursor extends Cube{
 	
 	private var enabledMaterial:Material;
 	private var disabledMaterial:Material;

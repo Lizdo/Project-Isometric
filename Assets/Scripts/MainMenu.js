@@ -5,6 +5,7 @@ public var resolutionRatio:int = 1;
 
 
 function Start () {
+#if UNITY_IPHONE	
 	if (Application.platform == RuntimePlatform.IPhonePlayer){
 	    switch (iPhone.generation){
 	        case iPhoneGeneration.iPhone4:
@@ -18,6 +19,7 @@ function Start () {
 	        	break;	        	            
 	    }
 	}
+#endif
 
 	borderPadding *= resolutionRatio;
 	minHeight *= resolutionRatio;

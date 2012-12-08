@@ -23,6 +23,7 @@ function Awake(){
 	cubeManager = GetComponent(CubeManager);
 	cameraManager = GetComponent(CameraManager);
 
+#if UNITY_IPHONE
 	if (Application.platform == RuntimePlatform.IPhonePlayer){
 	    switch (iPhone.generation){
 	        case iPhoneGeneration.iPhone4:
@@ -36,6 +37,7 @@ function Awake(){
 	        	break;	        	            
 	    }
 	}
+#endif
 
 	padding *= resolutionRatio;
 	buttonSize *= resolutionRatio;

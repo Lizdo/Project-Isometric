@@ -26,7 +26,7 @@ public var isDirty:boolean;
 private var cameraManager:CameraManager;
 private var inGameGUI:InGameGUI;
 
-private var cursor:Cursor;
+private var cursor:CubeCursor;
 private var log:GUIText;
 private var centerText:GUIText;
 
@@ -67,7 +67,7 @@ function Awake(){
 	log = Instantiate(Resources.Load("Log", GameObject)).GetComponent(GUIText);
 	centerText = Instantiate(Resources.Load("CenterText", GameObject)).GetComponent(GUIText);
 
-	cursor = Instantiate(Resources.Load("Cursor", GameObject)).GetComponent(Cursor);
+	cursor = Instantiate(Resources.Load("Cursor", GameObject)).GetComponent(CubeCursor);
 
 	ParseActions();
 
@@ -642,7 +642,7 @@ function IsAdjucentCubesPowered(x:int, y:int, z:int){
 }
 
 function CubeReleased(c:Cube){
-	// If the Cursor is Hidden or Disabled, do nothing
+	// If the CubeCursor is Hidden or Disabled, do nothing
 	if (!cursor.isValid){
 		cursor.Hide();
 		return;

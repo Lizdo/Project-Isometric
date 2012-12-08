@@ -14,6 +14,7 @@ function Awake(){
 function Start () {
 	Application.targetFrameRate = 60.0;
 
+#if UNITY_IPHONE
 	if (Application.platform == RuntimePlatform.IPhonePlayer){
 	    switch (iPhone.generation){
 	    	case iPhoneGeneration.iPad1Gen:
@@ -33,6 +34,7 @@ function Start () {
 	        	break;	        	            
 	    }
 	}
+#endif
 
 	targetPosition = transform.position;
 	targetRotationY = RotationY;
@@ -416,7 +418,8 @@ function UpdateInput(){
 		TouchCancelled();
 		return;
 	}
-	if (Application.platform == RuntimePlatform.IPhonePlayer){
+
+	if (Application.platform == RuntimePlatform.IPhonePlayer){	
 	    var touches = Input.touches;
 	    if (touches.length < 1)
 	        return;
