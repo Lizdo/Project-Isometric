@@ -1,6 +1,6 @@
 # Project Isometric
 
-(Current Version: V0.01, You'll need [Unity3D](http://unity3d.com/unity/download/) & [Blender](http://www.blender.org/download/get-blender/) to run the project.)
+(Current Version: V0.1, You'll need [Unity3D](http://unity3d.com/unity/download/) & [Blender](http://www.blender.org/download/get-blender/) to run the project.)
 
 An isometric block building game. Project started on July.1 2012.
 
@@ -17,7 +17,5 @@ An isometric block building game. Project started on July.1 2012.
 - Each Core Cube will power other cubes within a radius
 - Use Electricity Cube to Expand the power radius to other Unpowered Cores
 - Cover the whole area with Electricity
-
-(More design elements coming soon.)
 
 ###[Play the current build!](http://htmlpreview.github.com/?https://github.com/Lizdo/Project-Isometric/blob/master/Export/ProjectISO.html)
